@@ -1,0 +1,15 @@
+$ hypnotoad -f examples/security/test
+Generating a 2048 bit RSA private key
+..................................+++
+....................................................................+++
+writing new private key to '/Users/qtfk/.mojolicious/server.key'
+-----
+[Mon Jul 15 08:46:31 2013] [info] Listening at "http://*:3000".
+Server available at http://127.0.0.1:3000.
+[Mon Jul 15 08:46:31 2013] [info] Listening at "https://*:3001?key=/Users/qtfk/.mojolicious/server.key&cert=/Users/qtfk/.mojolicious/server.crt".
+Server available at https://127.0.0.1:3001?key=/Users/qtfk/.mojolicious/server.key&cert=/Users/qtfk/.mojolicious/server.crt.
+[Mon Jul 15 08:46:31 2013] [info] Manager 94979 started.
+[Mon Jul 15 08:46:31 2013] [info] Creating process id file "/Users/qtfk/Mojolicious-Plugin-Jam/examples/security/hypnotoad.pid".
+[Mon Jul 15 08:47:11 2013] [info] [nav] [nobody@127.0.0.1:60318 => GET http://127.0.0.1:3000/]
+[Mon Jul 15 08:47:11 2013] [info] [nav] Redirecting to "https://127.0.0.1:3001/" [nobody@127.0.0.1:60318 => GET http://127.0.0.1:3000/]
+[Mon Jul 15 08:47:11 2013] [info] [nav] [nobody@127.0.0.1:60319 => GET https://127.0.0.1:3001/]

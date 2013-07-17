@@ -1,0 +1,42 @@
+#!/usr/bin/env perl
+use Mojolicious::Lite;
+
+plugin 'Jam';
+
+get '/' => sub {
+  my $self = shift;
+  $self->render('index');
+};
+
+app->start;
+__DATA__
+
+@@ index.html.ep
+% layout 'default';
+% title 'Welcome';
+    Welcome to the Mojolicious real-time web framework!
+
+@@ layouts/default.html.ep
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+
+    <!-- default -->
+    %== jam library => 'jQuery UI'
+
+    <!-- theme => 'trontastic' -->
+    %== jam library => 'jQuery UI' => {theme => 'trontastic'}
+
+  % for (qw/default/) {
+    <!-- cdn => '<%= $_ %>' -->
+    %== jam library => 'jQuery UI' => {cdn => $_}
+
+  % }
+    <!-- current => 1 -->
+    %== jam library => 'jQuery UI' => {current => 1}
+
+  </head>
+  <body>
+<%= content %>  </body>
+</html>

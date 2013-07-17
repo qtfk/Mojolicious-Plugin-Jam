@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Welcome</title>
+    <link href="/css/jquery-ui-themes-1.10.3/themes/smoothness/jquery-ui.min.css" media="screen" rel="stylesheet" />
+    <script src="/js/jquery-1.10.2.min.js"></script>
+    <script src="/js/jquery-ui-1.10.3/ui/minified/jquery-ui.min.js"></script>
+    <script src="/js/jquery-validation-1.11.1/dist/jquery.validate.min.js"></script>
+    <style>/*<![CDATA[*/
+
+      body {
+        font-family: Verdana, Arial, sans-serif;
+      }
+      .ui-widget {
+        font-size: 75%;
+      }
+      .ui-tooltip {
+        padding-top: 2px;
+        padding-bottom: 2px;
+        background: #ffc;
+      }
+    
+/*]]>*/</style>
+  </head>
+  <body>
+ 
+<style>
+div#login {
+  display: table;
+  border-collapse: collapse;
+}
+div.login_fields {
+  display: table-row;
+}
+div.login_buttons {
+  display: table-row;
+}
+div.login_labels {
+  display: table-cell;
+  padding: 5px;
+  text-align: right;
+}
+div.login_inputs {
+  display: table-cell;
+  padding: 5px;
+}
+</style>
+<div id="login">
+<form id="login" method="POST">
+<div id="username" class="login_fields">
+<div id="username_label" class="login_labels"><label for="username" id="username_label" class="login_labels">Username</label></div>
+<div id="username_input" class="login_inputs"><input type="text" id="username" class="login_inputs" name="username" /></div>
+</div>
+<div id="password" class="login_fields">
+<div id="password_label" class="login_labels"><label for="password" id="password_label" class="login_labels">Password</label></div>
+<div id="password_input" class="login_inputs"><input type="password" id="password" class="login_inputs" name="password" /></div>
+</div>
+<div id="buttons" class="login_buttons">
+<div id="buttons_label" class="login_labels"></div>
+<div id="buttons_input" class="login_inputs">
+<input type="submit" id="submit" value="Go" />
+</div>
+</div>
+</form>
+<script>
+  $(function () {
+    $("form#login input[type=button], form#login input[type=submit], form#login input[type=reset]").button();
+    $("form#login input").tooltip({
+      position: {my: "right-10 center-10" },
+    }).mouseout(function (e) { e.stopImmediatePropagation() });
+    $("form#login").validate({
+      "errorPlacement": function(err, el) {
+        $(el).prop("title", err.text()).tooltip("open");
+      },
+      "success": function(label, el) {
+        $(el).tooltip("close").prop("title", "");
+      },
+      "rules":{"username":{"required":true},"password":{"required":true}}
+    });
+  });
+</script>
+</div>
+ 
+  </body>
+</html>

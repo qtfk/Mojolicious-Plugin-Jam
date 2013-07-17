@@ -1,0 +1,55 @@
+#!/usr/bin/env perl
+use Mojolicious::Lite;
+
+plugin 'Jam';
+
+get '/' => sub {
+  my $self = shift;
+  $self->render('index');
+};
+
+app->start;
+__DATA__
+
+@@ index.html.ep
+% layout 'default';
+% title 'Welcome';
+    Welcome to the Mojolicious real-time web framework!
+
+@@ layouts/default.html.ep
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+
+    <!-- default -->
+    %== jam library => 'jQuery Tools'
+
+  % for (qw/tiny form all/) {
+    <!-- combination => '<%= $_ %>' -->
+    %== jam library => jQuery => 'jQuery Tools' => {combination => 1}
+
+  % }
+  % for ('full', '') {
+    <!-- combination => '<%= $_ %>' -->
+    %== jam library => 'jQuery Tools' => {combination => $_}
+
+  % }
+    <!-- cdn => 'default' -->
+    %== jam library => 'jQuery Tools' => {cdn => 'default'}
+
+  % for (qw/tiny form all/) {
+    <!-- cdn => 'default', combination => '<%= $_ %>' -->
+    %== jam library => 'jQuery' => {cdn => 'default'}
+    %== jam library => 'jQuery Tools' => {cdn => 'default', combination => $_}
+
+  % }
+  % for ('full', '') {
+    <!-- cdn => 'default', combination => '<%= $_ %>' -->
+    %== jam library => 'jQuery Tools' => {cdn => 'default', combination => $_}
+
+  % }
+  </head>
+  <body>
+<%= content %>  </body>
+</html>

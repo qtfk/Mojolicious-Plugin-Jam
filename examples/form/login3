@@ -1,0 +1,101 @@
+#!/usr/bin/env perl
+use Mojolicious::Lite;
+
+plugin 'Jam';
+
+my %authorized = (
+  bender => 'rodriguez',
+);
+
+sub form {
+  my $form = app->jam(form => {id => 'login'})->post;
+  
+  my $username = $form->field(name => 'username');
+  $username->label('Username');
+  $username->id('username');
+  $username->required;
+  
+  my $password = $form->field(name => 'password');
+  $password->label('Password');
+  $password->type('password');
+  $password->id('password');
+  $password->required;
+  
+  my $submit = $form->button(type => 'submit');
+  $submit->value('Go');
+  $submit->id('submit');
+
+  return $form;
+}
+
+get '/' => sub {
+  my $self = shift;
+  if (defined $self->session('username')) {
+    $self->render('secure');
+  } else {
+    $self->stash(form => form);
+    $self->render('index');
+  }
+};
+
+post '/' => sub {
+  my $self = shift;
+  my $form = form->values($self);
+  if ($form->valid) {
+    my ($username, $password) = $self->param([qw/username password/]);
+    my $authorized = $authorized{$username};
+    if (defined $authorized) {
+      if ($password eq $authorized) {
+        $self->session(username => $username);
+      }
+    }
+  }
+  $self->redirect_to('/');
+};
+
+get '/logout' => sub {
+  my $self = shift;
+  $self->session(expires => 1);
+  $self->redirect_to('/');
+};
+
+app->start;
+__DATA__
+
+@@ index.html.ep
+% layout 'default';
+% title 'Welcome';
+ 
+%== $form
+ 
+
+@@ secure.html.ep
+% layout 'default';
+% title 'Secure';
+%= t h1 => 'Secure'
+%= link_to 'Log out' => '/logout'
+
+@@ layouts/default.html.ep
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    %== jam library => 'jQuery UI' => {current => 1}
+    %== jam library => 'jQuery plugin' => {validation => 1}
+    %= stylesheet begin
+      body {
+        font-family: Verdana, Arial, sans-serif;
+      }
+      .ui-widget {
+        font-size: 75%;
+      }
+      .ui-tooltip {
+        padding-top: 2px;
+        padding-bottom: 2px;
+        background: #ffc;
+      }
+    %= end
+  </head>
+  <body>
+<%= content %>  </body>
+</html>

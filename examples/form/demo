@@ -1,0 +1,136 @@
+#!/usr/bin/env perl
+use Mojolicious::Lite;
+
+plugin 'Jam';
+
+any '/' => sub {
+  my $self = shift;
+
+  # Built-in forms
+  my $one = $self->jam(form => {builtin => 'login', id => 'one'});
+  $self->stash(one => $one);
+
+  my $two = $self->jam(form => {builtin => 'login', id => 'two'});
+  $two->style->builtin('horizontal');
+  $self->stash(two => $two);
+
+  # Built-in fields
+  my $three = $self->jam(form => {id => 'three'});
+  $three->text;
+  $three->email;
+  $three->url;
+  $three->date;
+  $three->datetime;
+  $three->month;
+  $three->week;
+  $three->time;
+  $three->number;
+  $three->range;
+  $three->file;
+  $three->search;
+  $three->color;
+  $three->username;
+  $three->password;
+  $three->submit;
+  $three->reset;
+  $three->post;
+  $self->stash(three => $three);
+
+  # Built-in fields (required)
+  my $four = $self->jam(form => {id => 'four'});
+  $four->text->required;
+  $four->email->required; #required not working???
+  $four->url->required; #???
+  $four->date->required; #???
+  $four->datetime->required;
+  $four->month->required;
+  $four->week->required;
+  $four->time->required;
+  $four->number->required;
+  $four->range->required;
+  $four->file->required;
+  $four->search->required;
+  $four->color->required;
+  $four->username->required;
+  $four->password->required;
+  $four->submit;
+  $four->reset;
+  $four->post;
+  $self->stash(four => $four);
+
+=begin comment
+
+  # Other
+  my $other = $self->jam(form => {id => 'demo_other'});
+  $other->field;
+  $other->field->required;
+  $other->field(label => 'Text', name => 'text', id => 'text')->required;
+  $other->field(label => 'Password', name => 'password', id => 'password', type => 'password')->required;
+  $other->field(label => 'Submit', type => 'submit', value => 'Go');
+  $other->field(label => 'Reset', type => 'reset');
+  $other->field(label => 'Button', type => 'button', value => 'button');
+  $other->button(value => 'button');
+  $other->button(id => 'submit', type => 'submit', value => 'Go');
+  $other->button(id => 'reset', type => 'reset');
+  $self->stash(other => $other);
+
+=end comment
+
+=cut
+
+  $self->render('index');
+};
+
+app->start;
+__DATA__
+
+@@ index.html.ep
+% layout 'default';
+% title 'Form Demo';
+%= t h1 => 'Mojolicious::Plugin::Jam Form Demo';
+% my @param = param;
+% if (@param) {
+%= t h2 => 'Parameters'
+% for (@param) {
+% if (param($_) ne '') {
+  %= t p => "\"" . $_ . "\" = \"" . param($_) . "\""
+% }}}
+%= t h2 => 'Built-in Forms'
+%= t h3 => 'Login'
+%== $one
+%= t h3 => 'Login2';
+%== $two
+%= t h2 => 'Built-in Fields'
+%= t h3 => 'Defaults'
+%== $three
+%= t h3 => 'Required'
+%== $four
+%#= t h2 => 'Other'
+%#== $other
+
+@@ layouts/default.html.ep
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    %== jam library => 'jQuery UI' => {current => 1}
+    %== jam library => 'jQuery plugin' => {validation => 1}
+    %= stylesheet begin
+      body {
+        font-family: Verdana, Arial, sans-serif;
+        padding-bottom: 200px;
+      }
+      h2, h3 {
+        border-top: 1px solid black;
+      }
+      input {
+        width: 96%;
+      }
+      input[type=submit], input[type=reset] {
+        width: auto;
+      }
+    %= end
+  </head>
+  <body>
+<%= content %>  </body>
+</html>

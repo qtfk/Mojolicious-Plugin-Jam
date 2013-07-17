@@ -1,0 +1,19 @@
+#!/usr/bin/env perl
+use Mojolicious::Lite;
+
+plugin 'Jam';
+
+app->jam('security');
+
+get '/' => sub {
+  my $self = shift;
+  $self->render('index');
+};
+
+app->start;
+__DATA__
+
+@@ index.html.ep
+% layout 'default';
+% title 'Welcome';
+    Welcome to the Mojolicious real-time web framework!

@@ -1,0 +1,16 @@
+HTTP/1.1 302 Found
+Content-Length: 0
+Date: Mon, 15 Jul 2013 12:47:11 GMT
+Connection: keep-alive
+Server: Jam security
+Location: https://127.0.0.1:3001/
+
+HTTP/1.1 200 OK
+Server: Jam security
+Connection: keep-alive
+Content-Length: 201
+Date: Mon, 15 Jul 2013 12:47:11 GMT
+Cache-Control: max-age=0, no-store, no-cache, must-revalidate
+Content-Type: text/html;charset=UTF-8
+Expires: 0
+

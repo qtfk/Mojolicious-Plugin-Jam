@@ -1,0 +1,1315 @@
+=pod
+
+=encoding utf-8
+
+=head1 NAME
+
+Mojolicious::Plugin::Jam - Mojolicious plugin
+
+=head1 SYNOPSIS
+
+ # Mojolicious
+ $self->plugin('Jam');
+
+ # Mojolicious::Lite
+ plugin 'Jam';
+
+=head1 DESCRIPTION
+
+L<Mojolicious::Plugin::Jam> is a L<Mojolicious> plugin that enables
+additional features for Mojolicious.
+
+=over
+
+=item *
+
+Inclusion of current versions (either bundled into this plugin or via
+CDN) of various JavaScript libraries, including jQuery, jQuery UI, jQuery
+Validation plugin, and jQuery Tools (see the L</library> section)
+
+=item *
+
+Perlish and object-oriented HTML form generation and both client- and
+server-side validation defined in a single place rather than the various
+parts spread across the controllers and views (see the L<"form"|/form1> section)
+
+=item *
+
+Setting security features by default for a Mojolicious app, including SSL
+certificate generation, http to https redirection, random secret
+passphrase, enforced session timeout, custom cookie name, sending the
+cookie only over HTTPS, immediate expiration and disable caching of
+content, salted password hashing, channelized logging, and custom server
+header (see the L</security> section)
+
+=back
+
+=head1 METHODS
+
+L<Mojolicious::Plugin::Jam> inherits all methods from
+L<Mojolicious::Plugin> and implements the following new ones.
+
+=head2 register
+
+ $plugin->register(Mojolicious->new);
+
+Register plugin in L<Mojolicious> application.
+
+=head1 HELPERS
+
+L<Mojolicious::Plugin::Jam> implements the following helpers.
+
+=head2 jam
+
+Usage:
+
+ $app->jam(command => @options);  # In Mojolicious app
+ app->jam(command => @options);   # In Mojolicious::Lite app
+ $self->jam(command => @options); # In controller
+ %== jam command => @options      # In templates and layouts
+
+Available commands for the 'jam' helper, and their usage is documented in the L</COMMANDS> section.
+
+=head1 COMMANDS
+
+=head2 library
+
+ # In template or layout
+ %== jam library => $library => {$option => $value}
+ 
+ # In controller
+ my $library = $self->jam(library => $library => {$option => $value});
+ $self->stash(library => $library);
+ # In template or layout
+ %== $library
+
+Loads one or more JavaScript libraries:
+
+=head3 jQuery
+
+Use jQuery
+
+ %== jam library => 'jQuery'
+
+Produces:
+
+ <script src="/js/jquery-1.10.2.min.js"></script>
+ 
+Use a CDN (valid cdn's: google, mediatemple, microsoft, cdnjs, jquery,
+cloudflare, and default)
+
+ %== jam library => jQuery => {cdn => 'google'}
+
+Produces:
+
+ <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+See the L<"jQuery"|/jQuery1> example for a complete demonstration.
+
+=head3 jQuery UI
+
+Use the bundled jQuery UI
+
+ %== jam library => 'jQuery UI'
+ 
+Produces:
+
+ <link href="/css/jquery-ui-themes-1.10.3/themes/smoothness/jquery-ui.min.css" media="screen" rel="stylesheet" />
+ <script src="/js/jquery-ui-1.10.3/jquery-1.9.1.js"></script>
+ <script src="/js/jquery-ui-1.10.3/ui/minified/jquery-ui.min.js"></script>
+ 
+Use the 'trontastic' theme
+
+ %== jam library => 'jQuery UI' => {theme => 'trontastic'}
+ 
+Produces:
+
+ <link href="/css/jquery-ui-themes-1.10.3/themes/trontastic/jquery-ui.min.css" media="screen" rel="stylesheet" />
+ <script src="/js/jquery-ui-1.10.3/jquery-1.9.1.js"></script>
+ <script src="/js/jquery-ui-1.10.3/ui/minified/jquery-ui.min.js"></script>
+ 
+Use the CDN (valid cdn's: default)
+
+ %== jam library => 'jQuery UI' => {cdn => 'default'}
+ 
+Produces:
+
+ <link href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.min.css" media="screen" rel="stylesheet" />
+ <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+ <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+ 
+Use the current version of jQuery (1.10.2) instead of the one packaged
+with jQuery UI (1.9.1)
+
+ %== jam library => 'jQuery UI' => {current => 1}
+
+Produces:
+
+ <link href="/css/jquery-ui-themes-1.10.3/themes/smoothness/jquery-ui.min.css" media="screen" rel="stylesheet" />
+ <script src="/js/jquery-1.10.2.min.js"></script>
+ <script src="/js/jquery-ui-1.10.3/ui/minified/jquery-ui.min.js"></script>
+
+See the L<"jQuery UI"|/jQuery-UI1> example for a complete demonstration.
+
+=head3 jQuery plugin
+
+Use the Validation plugin
+
+ %== jam library => 'jQuery plugin' => {validation => 1}
+
+Produces:
+
+ <script src="/js/jquery-validation-1.11.1/dist/jquery.validate.min.js"></script>
+
+Please note that plugins generally require jQuery to be loaded prior to the
+plugin.
+Check the plugin's respective documentation for details.
+This can be achieved via:
+
+ %== jam library => 'jQuery'
+ %== jam library => 'jQuery plugin' => {validation => 1}
+
+or
+
+ %== jam library => jQuery => 'jQuery plugin' => {validation => 1}
+
+See the L<"jQuery plugin"|/jQuery-plugin1> example for a complete demonstration.
+
+=head3 jQuery Tools
+
+Use jQuery Tools
+
+ %== jam library => 'jQuery Tools'
+ 
+Produces:
+
+ <script src="/js/jquery-tools-1.2.7/full/jquery.tools.min.js"></script>
+ 
+Use the 'tiny' combination (valid combinations: tiny, form, all, full, '')
+
+ %== jam library => jquery => 'jQuery Tools' => {combination => 'tiny'}
+ 
+Produces:
+
+ <script src="/js/jquery-1.10.2.min.js"></script>
+ <script src="/js/jquery-tools-1.2.7/tiny/jquery.tools.min.js"></script>
+ 
+Use the CDN (valid cdn's: default)
+
+ %== jam library => jQuery Tools' => {cdn => 'default'}
+
+Produces:
+
+ <script src="http://cdn.jquerytools.org/1.2.7/full/jquery.tools.min.js"></script>
+
+The default combination is 'full'.
+The 'full' and '' combinations include jQuery, so there is no need to also
+load jQuery separately.
+The 'tiny', 'form', and 'all' combinations do not include jQuery, so you
+will need to load it prior to loading jQuery Tools.
+
+Here is a list of the combinations and a short description from the jQuery
+Tools site:
+
+=over
+
+=item tiny:
+
+UI Tools: Tabs, Tooltip, Scrollable and Overlay (4.45 Kb)
+
+=item form:
+
+Form tools: Dateinput, Rangeinput and Validator. No jQuery library.
+ 
+=item all:
+
+ALL jQuery Tools. No jQuery library
+
+=item '':
+ 
+jQuery Library + UI Tools
+ 
+=item full (default):
+
+jQuery Library + ALL jQuery Tools
+
+=back
+
+See the L<"jQuery Tools"|/jQuery-Tools1> example for a complete demonstration.
+
+=head2 form
+
+Create the form subroutine:
+
+ sub form {
+   my $form = $app->jam(form => \%options); # Mojolicious
+   my $form = app->jam(form => \%options);  # Mojolicious::Lite
+   # Configure the form here
+   return $form;
+ }
+
+In the controller:
+
+ $self->stash(form => form);
+
+In the template:
+
+ # Insert necessary JavaScript libraries
+ %== jam library => 'jQuery UI' => {current => 1}
+ %== jam library => 'jQuery plugin' => {validation => 1}
+
+ # Generate the form HTML
+ %== $form
+
+In the controller for the submitted form:
+
+ # Set values from GET and/or POST parameters
+ my $form = form->values($self);
+ 
+ # Validate form
+ if ($form->valid) {
+   # do something
+ } else {
+   # do something else
+ }
+
+The 'form' command provides a way to define HTML forms and their validation
+rules in one place.
+
+=head3 Options
+
+=head4 builtin
+
+ my $form = $self->jam('form', {builtin => $builtin});
+
+Use a built-in form:
+
+=over
+
+=item *
+
+login
+
+=back
+
+For the rest of the options, see the L<Mojolicious::Plugin::Jam::Form> documentation.
+
+=head2 security
+
+ # In Mojolicious
+ $app->jam('security');
+ $app->jam(security => \%options);
+ 
+ # In Mojolicious::Lite
+ app->jam('security');
+ app->jam(security => \%options);
+
+The 'security' command automatically configures Mojolicious to be a bit
+more secure by default, including:
+
+=over
+
+=item *
+
+If an SSL certificate and key are not specified or the certificate is
+expired, generates a self-signed certficate with OpenSSL
+
+=item *
+
+Automatically configures Hypnotoad to listen for unencrypted requests via
+HTTP and redirects them to the HTTPS port
+
+=item *
+
+Morbo can be used with proper listen arguments:
+
+ morbo -l 'http://*:3000' \
+ -l "https://*:3001?key=$HOME/.mojolicious/server.key&cert=$HOME/.mojolicious/server.crt"
+
+Or use scripts/security/morbo.pl:
+
+ ./scripts/security/morbo.pl examples/security/test
+
+=item *
+
+Generates a random secret passphrase to encrypt session cookies
+
+=item *
+
+Enforces session timeout length via server-side expiration and instructing the browser to refresh with a meta http-equiv refresh in a custom default layout
+
+=item *
+
+Customizes the cookie name
+
+=item *
+
+Sends the cookie over HTTPS only
+
+=item *
+
+Immediately expires content delivered over HTTPS and instructs the browser not to cache it
+
+=item *
+
+Provides salted password hashing and validation helper functions
+
+ # Hash a password
+ my $hash = $self->hash($original_password);
+ 
+ # Validate it later
+ if ($self->validate_hash($hash, $password)) {
+   # do something here
+ }
+
+=item *
+
+Provides a channelized logging helper function and logs client interaction by default
+
+ # Make a "custom" logging channel
+ app->jam(security => {logging_custom => 1});
+ 
+ # Log a message to the "custom" channel
+ $self->log('custom', $message);
+
+=item *
+
+Custom server header
+
+=item *
+
+Otherwise stays out of your way
+
+=back
+
+The default configuration values are stored in a hashref:
+
+ {
+   secret_length => 20,
+   session_hours => 1,
+   cookie_name   => 'Jam',
+   http_port     => 3000,
+   https_port    => 3001,
+   config_dir    => catdir($ENV{HOME}, '.mojolicious'),
+   ssl_key       => 'server.key',
+   ssl_crt       => 'server.crt',
+   ssl_days      => 365,
+   ssl_subj      => '/C=US/ST=NY/CN=*',
+   logging_nav   => 1,
+   server        => 'Jam',
+ }
+
+Any of these values can be overridden (or added) by appending them to the plugin call, for example:
+
+ # Disable logging client interaction
+ app->jam(security => {logging_nav => 0});
+
+See the L<"security"|/security1> example for a demonstration.
+
+=head1 EXAMPLES
+
+The following examples demonstrate how L<Mojolicious::Plugin::Jam> can be
+used.
+
+They are included in the examples directory and can be run via morbo or
+hypnotoad after installing the module (see the L</Installation> section):
+
+ morbo examples/library/jquery
+ morbo examples/library/jqueryui
+ morbo examples/library/jquery_plugin
+ morbo examples/library/jquery_tools
+ morbo examples/form/login1
+ morbo examples/form/login2
+ morbo examples/form/login3
+ morbo -l "http://*:3000" -l "https://*:3001/?key=$HOME/.mojolicious/server.key&cert=$HOME/.mojolicious/server.crt" examples/security/test
+ scripts/security/morbo.pl examples/security/test
+ hypnotoad -f examples/security/test
+
+=head2 library
+
+=head3 jQuery
+
+The included example script at examples/library/jquery demonstrates how
+L<Mojolicious::Plugin::Jam> can be used to include jQuery:
+
+ #!/usr/bin/env perl
+ use Mojolicious::Lite;
+ 
+ plugin 'Jam';
+ 
+ get '/' => sub {
+   my $self = shift;
+   $self->render('index');
+ };
+ 
+ app->start;
+ __DATA__
+ 
+ @@ index.html.ep
+ % layout 'default';
+ % title 'Welcome';
+     Welcome to the Mojolicious real-time web framework!
+ 
+ @@ layouts/default.html.ep
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title><%= title %></title>
+ 
+     <!-- default -->
+     %== jam library => 'jQuery'
+ 
+   % for (qw/google mediatemple microsoft cdnjs jquery cloudflare default/) {
+     <!-- cdn => '<%= $_ %>' -->
+     %== jam library => jQuery => {cdn => $_}
+ 
+   % }
+   </head>
+   <body>
+ <%= content %>  </body>
+ </html>
+
+The resulting page is:
+
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title>Welcome</title>
+ 
+     <!-- default -->
+     <script src="/js/jquery-1.10.2.min.js"></script>
+ 
+     <!-- cdn => 'google' -->
+     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+ 
+     <!-- cdn => 'mediatemple' -->
+     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+ 
+     <!-- cdn => 'microsoft' -->
+     <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.10.2.min.js"></script>
+ 
+     <!-- cdn => 'cdnjs' -->
+     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+ 
+     <!-- cdn => 'jquery' -->
+     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+ 
+     <!-- cdn => 'cloudflare' -->
+     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+ 
+     <!-- cdn => 'default' -->
+     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+ 
+   </head>
+   <body>
+     Welcome to the Mojolicious real-time web framework!
+   </body>
+ </html>
+
+=head3 jQuery UI
+
+The included example script at examples/library/jquery_ui demonstrates how
+L<Mojolicious::Plugin::Jam> can be used to include jQuery UI:
+
+ #!/usr/bin/env perl
+ use Mojolicious::Lite;
+ 
+ plugin 'Jam';
+ 
+ get '/' => sub {
+   my $self = shift;
+   $self->render('index');
+ };
+ 
+ app->start;
+ __DATA__
+ 
+ @@ index.html.ep
+ % layout 'default';
+ % title 'Welcome';
+     Welcome to the Mojolicious real-time web framework!
+ 
+ @@ layouts/default.html.ep
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title><%= title %></title>
+ 
+     <!-- default -->
+     %== jam library => 'jQuery UI'
+ 
+     <!-- theme => 'trontastic' -->
+     %== jam library => 'jQuery UI' => {theme => 'trontastic'}
+ 
+   % for (qw/default/) {
+     <!-- cdn => '<%= $_ %>' -->
+     %== jam library => 'jQuery UI' => {cdn => $_}
+ 
+   % }
+     <!-- current => 1 -->
+     %== jam library => 'jQuery UI' => {current => 1}
+ 
+   </head>
+   <body>
+ <%= content %>  </body>
+ </html>
+
+The resulting page is:
+
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title>Welcome</title>
+ 
+     <!-- default -->
+     <link href="/css/jquery-ui-themes-1.10.3/themes/smoothness/jquery-ui.min.css" media="screen" rel="stylesheet" />
+     <script src="/js/jquery-ui-1.10.3/jquery-1.9.1.js"></script>
+     <script src="/js/jquery-ui-1.10.3/ui/minified/jquery-ui.min.js"></script>
+ 
+     <!-- theme => 'trontastic' -->
+     <link href="/css/jquery-ui-themes-1.10.3/themes/trontastic/jquery-ui.min.css" media="screen" rel="stylesheet" />
+     <script src="/js/jquery-ui-1.10.3/jquery-1.9.1.js"></script>
+     <script src="/js/jquery-ui-1.10.3/ui/minified/jquery-ui.min.js"></script>
+ 
+     <!-- cdn => 'default' -->
+     <link href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.min.css" media="screen" rel="stylesheet" />
+     <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+     <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+ 
+     <!-- current => 1 -->
+     <link href="/css/jquery-ui-themes-1.10.3/themes/smoothness/jquery-ui.min.css" media="screen" rel="stylesheet" />
+     <script src="/js/jquery-1.10.2.min.js"></script>
+     <script src="/js/jquery-ui-1.10.3/ui/minified/jquery-ui.min.js"></script>
+ 
+   </head>
+   <body>
+     Welcome to the Mojolicious real-time web framework!
+   </body>
+ </html>
+
+=head3 jQuery plugin
+
+The included example script at examples/library/jquery_plugin demonstrates
+how L<Mojolicious::Plugin::Jam> can be used to include jQuery plugins:
+
+ #!/usr/bin/env perl
+ use Mojolicious::Lite;
+ 
+ plugin 'Jam';
+ 
+ get '/' => sub {
+   my $self = shift;
+   $self->render('index');
+ };
+ 
+ app->start;
+ __DATA__
+ 
+ @@ index.html.ep
+ % layout 'default';
+ % title 'Welcome';
+     Welcome to the Mojolicious real-time web framework!
+ 
+ @@ layouts/default.html.ep
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title><%= title %></title>
+ 
+     %== jam library => jQuery => 'jQuery plugin' => {validation => 1}
+ 
+   </head>
+   <body>
+ <%= content %>  </body>
+ </html>
+
+The resulting page is:
+
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title>Welcome</title>
+ 
+     <script src="/js/jquery-1.10.2.min.js"></script>
+     <script src="/js/jquery-validation-1.11.1/dist/jquery.validate.min.js"></script>
+ 
+   </head>
+   <body>
+     Welcome to the Mojolicious real-time web framework!
+   </body>
+ </html>
+
+=head3 jQuery Tools
+
+The included example script at examples/library/jquery_tools demonstrates
+how L<Mojolicious::Plugin::Jam> can be used to include jQuery Tools:
+
+ #!/usr/bin/env perl
+ use Mojolicious::Lite;
+ 
+ plugin 'Jam';
+ 
+ get '/' => sub {
+   my $self = shift;
+   $self->render('index');
+ };
+ 
+ app->start;
+ __DATA__
+ 
+ @@ index.html.ep
+ % layout 'default';
+ % title 'Welcome';
+     Welcome to the Mojolicious real-time web framework!
+ 
+ @@ layouts/default.html.ep
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title><%= title %></title>
+ 
+     <!-- default -->
+     %== jam library => 'jQuery Tools'
+ 
+   % for (qw/tiny form all/) {
+     <!-- combination => '<%= $_ %>' -->
+     %== jam library => jQuery => 'jQuery Tools' => {combination => 1}
+ 
+   % }
+   % for ('full', '') {
+     <!-- combination => '<%= $_ %>' -->
+     %== jam library => 'jQuery Tools' => {combination => $_}
+ 
+   % }
+     <!-- cdn => 'default' -->
+     %== jam library => 'jQuery Tools' => {cdn => 'default'}
+ 
+   % for (qw/tiny form all/) {
+     <!-- cdn => 'default', combination => '<%= $_ %>' -->
+     %== jam library => 'jQuery' => {cdn => 'default'}
+     %== jam library => 'jQuery Tools' => {cdn => 'default', combination => $_}
+ 
+   % }
+   % for ('full', '') {
+     <!-- cdn => 'default', combination => '<%= $_ %>' -->
+     %== jam library => 'jQuery Tools' => {cdn => 'default', combination => $_}
+ 
+   % }
+   </head>
+   <body>
+ <%= content %>  </body>
+ </html>
+
+The resulting page is:
+
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title>Welcome</title>
+ 
+     <!-- default -->
+     <script src="/js/jquery-tools-1.2.7/full/jquery.tools.min.js"></script>
+ 
+     <!-- combination => 'tiny' -->
+     <script src="/js/jquery-1.10.2.min.js"></script>
+     <script src="/js/jquery-tools-1.2.7/full/jquery.tools.min.js"></script>
+ 
+     <!-- combination => 'form' -->
+     <script src="/js/jquery-1.10.2.min.js"></script>
+     <script src="/js/jquery-tools-1.2.7/full/jquery.tools.min.js"></script>
+ 
+     <!-- combination => 'all' -->
+     <script src="/js/jquery-1.10.2.min.js"></script>
+     <script src="/js/jquery-tools-1.2.7/full/jquery.tools.min.js"></script>
+ 
+     <!-- combination => 'full' -->
+     <script src="/js/jquery-tools-1.2.7/full/jquery.tools.min.js"></script>
+ 
+     <!-- combination => '' -->
+     <script src="/js/jquery-tools-1.2.7/jquery.tools.min.js"></script>
+ 
+     <!-- cdn => 'default' -->
+     <script src="http://cdn.jquerytools.org/1.2.7/full/jquery.tools.min.js"></script>
+ 
+     <!-- cdn => 'default', combination => 'tiny' -->
+     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+     <script src="http://cdn.jquerytools.org/1.2.7/tiny/jquery.tools.min.js"></script>
+ 
+     <!-- cdn => 'default', combination => 'form' -->
+     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+     <script src="http://cdn.jquerytools.org/1.2.7/form/jquery.tools.min.js"></script>
+ 
+     <!-- cdn => 'default', combination => 'all' -->
+     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+     <script src="http://cdn.jquerytools.org/1.2.7/all/jquery.tools.min.js"></script>
+ 
+     <!-- cdn => 'default', combination => 'full' -->
+     <script src="http://cdn.jquerytools.org/1.2.7/full/jquery.tools.min.js"></script>
+ 
+     <!-- cdn => 'default', combination => '' -->
+     <script src="http://cdn.jquerytools.org/1.2.7/jquery.tools.min.js"></script>
+ 
+   </head>
+   <body>
+     Welcome to the Mojolicious real-time web framework!
+   </body>
+ </html>
+
+=head2 form
+
+There are three examples in examples/form/, login1, login2, and login3.
+Each of these examples produce the same HTML form and validation rules,
+but goes about it differently.
+
+The first example uses the built-in 'login' form.
+The second example uses built-in fields defined in
+L<Mojolicious::Plugin::Jam::Form>.
+The third example uses the 'field' method in
+L<Mojolicious::Plugin::Jam::Form> to create each field.
+
+All three examples produce this page:
+
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title>Welcome</title>
+     <link href="/css/jquery-ui-themes-1.10.3/themes/smoothness/jquery-ui.min.css" media="screen" rel="stylesheet" />
+     <script src="/js/jquery-1.10.2.min.js"></script>
+     <script src="/js/jquery-ui-1.10.3/ui/minified/jquery-ui.min.js"></script>
+     <script src="/js/jquery-validation-1.11.1/dist/jquery.validate.min.js"></script>
+     <style>/*<![CDATA[*/
+ 
+       body {
+         font-family: Verdana, Arial, sans-serif;
+       }
+       .ui-widget {
+         font-size: 75%;
+       }
+       .ui-tooltip {
+         padding-top: 2px;
+         padding-bottom: 2px;
+         background: #ffc;
+       }
+     
+ /*]]>*/</style>
+   </head>
+   <body>
+  
+ <style>
+ div#login {
+   display: table;
+   border-collapse: collapse;
+ }
+ div.login_fields {
+   display: table-row;
+ }
+ div.login_buttons {
+   display: table-row;
+ }
+ div.login_labels {
+   display: table-cell;
+   padding: 5px;
+   text-align: right;
+ }
+ div.login_inputs {
+   display: table-cell;
+   padding: 5px;
+ }
+ </style>
+ <div id="login">
+ <form id="login" method="POST">
+ <div id="username" class="login_fields">
+ <div id="username_label" class="login_labels"><label for="username" id="username_label" class="login_labels">Username</label></div>
+ <div id="username_input" class="login_inputs"><input type="text" id="username" class="login_inputs" name="username" /></div>
+ </div>
+ <div id="password" class="login_fields">
+ <div id="password_label" class="login_labels"><label for="password" id="password_label" class="login_labels">Password</label></div>
+ <div id="password_input" class="login_inputs"><input type="password" id="password" class="login_inputs" name="password" /></div>
+ </div>
+ <div id="buttons" class="login_buttons">
+ <div id="buttons_label" class="login_labels"></div>
+ <div id="buttons_input" class="login_inputs">
+ <input type="submit" id="submit" value="Go" />
+ </div>
+ </div>
+ </form>
+ <script>
+   $(function () {
+     $("form#login input[type=button], form#login input[type=submit], form#login input[type=reset]").button();
+     $("form#login input").tooltip({
+       position: {my: "right-10 center-10" },
+     }).mouseout(function (e) { e.stopImmediatePropagation() });
+     $("form#login").validate({
+       "errorPlacement": function(err, el) {
+         $(el).prop("title", err.text()).tooltip("open");
+       },
+       "success": function(label, el) {
+         $(el).tooltip("close").prop("title", "");
+       },
+       "rules":{"password":{"required":true},"username":{"required":true}}
+     });
+   });
+ </script>
+ </div>
+  
+   </body>
+ </html>
+
+These examples use the built-in 'horizontal' style, but you can use any
+other built-in styles, the 'style' method in
+L<Mojolicious::Plugin::Jam::Form>, or a
+L<Mojolicious::Plugin::Jam::Form::Style> object to style forms.
+
+=head3 login1
+
+ #!/usr/bin/env perl
+ use Mojolicious::Lite;
+ 
+ plugin 'Jam';
+ 
+ my %authorized = (
+   bender => 'rodriguez',
+ );
+ 
+ sub form {
+   return app->jam(form => {builtin => 'login'});
+ }
+ 
+ get '/' => sub {
+   my $self = shift;
+   if (defined $self->session('username')) {
+     $self->render('secure');
+   } else {
+     $self->stash(form => form);
+     $self->render('index');
+   }
+ };
+ 
+ post '/' => sub {
+   my $self = shift;
+   my $form = form->values($self);
+   if ($form->valid) {
+     my ($username, $password) = $self->param([qw/username password/]);
+     my $authorized = $authorized{$username};
+     if (defined $authorized) {
+       if ($password eq $authorized) {
+         $self->session(username => $username);
+       }
+     }
+   }
+   $self->redirect_to('/');
+ };
+ 
+ get '/logout' => sub {
+   my $self = shift;
+   $self->session(expires => 1);
+   $self->redirect_to('/');
+ };
+ 
+ app->start;
+ __DATA__
+ 
+ @@ index.html.ep
+ % layout 'default';
+ % title 'Welcome';
+  
+ %== $form
+  
+ 
+ @@ secure.html.ep
+ % layout 'default';
+ % title 'Secure';
+ %= t h1 => 'Secure'
+ %= link_to 'Log out' => '/logout'
+ 
+ @@ layouts/default.html.ep
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title><%= title %></title>
+     %== jam library => 'jQuery UI' => {current => 1}
+     %== jam library => 'jQuery plugin' => {validation => 1}
+     %= stylesheet begin
+       body {
+         font-family: Verdana, Arial, sans-serif;
+       }
+       .ui-widget {
+         font-size: 75%;
+       }
+       .ui-tooltip {
+         padding-top: 2px;
+         padding-bottom: 2px;
+         background: #ffc;
+       }
+     %= end
+   </head>
+   <body>
+ <%= content %>  </body>
+ </html>
+
+=head3 login2
+
+ #!/usr/bin/env perl
+ use Mojolicious::Lite;
+ 
+ plugin 'Jam';
+ 
+ my %authorized = (
+   bender => 'rodriguez',
+ );
+ 
+ sub form {
+   my $form = app->jam(form => {id => 'login'})->post;
+   my $u = $form->username->required;
+   my $p = $form->password->required;
+   my $s = $form->submit(value => 'Go');
+   return $form;
+ }
+ 
+ get '/' => sub {
+   my $self = shift;
+   if (defined $self->session('username')) {
+     $self->render('secure');
+   } else {
+     $self->stash(form => form);
+     $self->render('index');
+   }
+ };
+ 
+ post '/' => sub {
+   my $self = shift;
+   my $form = form->values($self);
+   if ($form->valid) {
+     my ($username, $password) = $self->param([qw/username password/]);
+     my $authorized = $authorized{$username};
+     if (defined $authorized) {
+       if ($password eq $authorized) {
+         $self->session(username => $username);
+       }
+     }
+   }
+   $self->redirect_to('/');
+ };
+ 
+ get '/logout' => sub {
+   my $self = shift;
+   $self->session(expires => 1);
+   $self->redirect_to('/');
+ };
+ 
+ app->start;
+ __DATA__
+ 
+ @@ index.html.ep
+ % layout 'default';
+ % title 'Welcome';
+  
+ %== $form
+  
+ 
+ @@ secure.html.ep
+ % layout 'default';
+ % title 'Secure';
+ %= t h1 => 'Secure'
+ %= link_to 'Log out' => '/logout'
+ 
+ @@ layouts/default.html.ep
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title><%= title %></title>
+     %== jam library => 'jQuery UI' => {current => 1}
+     %== jam library => 'jQuery plugin' => {validation => 1}
+     %= stylesheet begin
+       body {
+         font-family: Verdana, Arial, sans-serif;
+       }
+       .ui-widget {
+         font-size: 75%;
+       }
+       .ui-tooltip {
+         padding-top: 2px;
+         padding-bottom: 2px;
+         background: #ffc;
+       }
+     %= end
+   </head>
+   <body>
+ <%= content %>  </body>
+ </html>
+
+=head3 login3
+
+ #!/usr/bin/env perl
+ use Mojolicious::Lite;
+ 
+ plugin 'Jam';
+ 
+ my %authorized = (
+   bender => 'rodriguez',
+ );
+ 
+ sub form {
+   my $form = app->jam(form => {id => 'login'})->post;
+   
+   my $username = $form->field(name => 'username');
+   $username->label('Username');
+   $username->id('username');
+   $username->required;
+   
+   my $password = $form->field(name => 'password');
+   $password->label('Password');
+   $password->type('password');
+   $password->id('password');
+   $password->required;
+   
+   my $submit = $form->button(type => 'submit');
+   $submit->value('Go');
+   $submit->id('submit');
+ 
+   return $form;
+ }
+ 
+ get '/' => sub {
+   my $self = shift;
+   if (defined $self->session('username')) {
+     $self->render('secure');
+   } else {
+     $self->stash(form => form);
+     $self->render('index');
+   }
+ };
+ 
+ post '/' => sub {
+   my $self = shift;
+   my $form = form->values($self);
+   if ($form->valid) {
+     my ($username, $password) = $self->param([qw/username password/]);
+     my $authorized = $authorized{$username};
+     if (defined $authorized) {
+       if ($password eq $authorized) {
+         $self->session(username => $username);
+       }
+     }
+   }
+   $self->redirect_to('/');
+ };
+ 
+ get '/logout' => sub {
+   my $self = shift;
+   $self->session(expires => 1);
+   $self->redirect_to('/');
+ };
+ 
+ app->start;
+ __DATA__
+ 
+ @@ index.html.ep
+ % layout 'default';
+ % title 'Welcome';
+  
+ %== $form
+  
+ 
+ @@ secure.html.ep
+ % layout 'default';
+ % title 'Secure';
+ %= t h1 => 'Secure'
+ %= link_to 'Log out' => '/logout'
+ 
+ @@ layouts/default.html.ep
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title><%= title %></title>
+     %== jam library => 'jQuery UI' => {current => 1}
+     %== jam library => 'jQuery plugin' => {validation => 1}
+     %= stylesheet begin
+       body {
+         font-family: Verdana, Arial, sans-serif;
+       }
+       .ui-widget {
+         font-size: 75%;
+       }
+       .ui-tooltip {
+         padding-top: 2px;
+         padding-bottom: 2px;
+         background: #ffc;
+       }
+     %= end
+   </head>
+   <body>
+ <%= content %>  </body>
+ </html>
+
+=head2 security
+
+The included example script at examples/security/test demonstrates how
+L<Mojolicious::Plugin::Jam> can be used to activate security features:
+
+ #!/usr/bin/env perl
+ use Mojolicious::Lite;
+ 
+ plugin 'Jam';
+ 
+ app->jam('security');
+ 
+ get '/' => sub {
+   my $self = shift;
+   $self->render('index');
+ };
+ 
+ app->start;
+ __DATA__
+ 
+ @@ index.html.ep
+ % layout 'default';
+ % title 'Welcome';
+     Welcome to the Mojolicious real-time web framework!
+
+Start the app via C<hypnotoad -f examples/security/test> and then request
+"http://127.0.0.1:3000" via
+C<< curl -Lk -D examples/security/test.headers http://127.0.0.1:3000 >examples/security/test.html >>:
+
+Hypnotoad:
+
+ $ hypnotoad -f examples/security/test
+ Generating a 2048 bit RSA private key
+ ..................................+++
+ ....................................................................+++
+ writing new private key to '/Users/qtfk/.mojolicious/server.key'
+ -----
+ [Mon Jul 15 08:46:31 2013] [info] Listening at "http://*:3000".
+ Server available at http://127.0.0.1:3000.
+ [Mon Jul 15 08:46:31 2013] [info] Listening at "https://*:3001?key=/Users/qtfk/.mojolicious/server.key&cert=/Users/qtfk/.mojolicious/server.crt".
+ Server available at https://127.0.0.1:3001?key=/Users/qtfk/.mojolicious/server.key&cert=/Users/qtfk/.mojolicious/server.crt.
+ [Mon Jul 15 08:46:31 2013] [info] Manager 94979 started.
+ [Mon Jul 15 08:46:31 2013] [info] Creating process id file "/Users/qtfk/Mojolicious-Plugin-Jam/examples/security/hypnotoad.pid".
+ [Mon Jul 15 08:47:11 2013] [info] [nav] [nobody@127.0.0.1:60318 => GET http://127.0.0.1:3000/]
+ [Mon Jul 15 08:47:11 2013] [info] [nav] Redirecting to "https://127.0.0.1:3001/" [nobody@127.0.0.1:60318 => GET http://127.0.0.1:3000/]
+ [Mon Jul 15 08:47:11 2013] [info] [nav] [nobody@127.0.0.1:60319 => GET https://127.0.0.1:3001/]
+
+Headers:
+
+ HTTP/1.1 302 Found
+ Content-Length: 0
+ Date: Mon, 15 Jul 2013 12:47:11 GMT
+ Connection: keep-alive
+ Server: Jam security
+ Location: https://127.0.0.1:3001/
+ 
+ HTTP/1.1 200 OK
+ Server: Jam security
+ Connection: keep-alive
+ Content-Length: 201
+ Date: Mon, 15 Jul 2013 12:47:11 GMT
+ Cache-Control: max-age=0, no-store, no-cache, must-revalidate
+ Content-Type: text/html;charset=UTF-8
+ Expires: 0
+ 
+
+HTML:
+
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <title>Welcome</title>
+     <meta http-equiv="refresh" content="3660" />
+   </head>
+   <body>
+     Welcome to the Mojolicious real-time web framework!
+   </body>
+ </html>
+
+=head1 SEE ALSO
+
+L<jQuery|http://jquery.com/>,
+L<jQuery UI|http://jqueryui.com/>,
+L<jQuery Validation plugin|http://jqueryvalidation.org/>,
+L<jQuery Tools|http://jquerytools.org/>
+
+L<Mojolicious::Plugin::Jam::Form>,
+L<Mojolicious::Plugin::Jam::Form::Button>,
+L<Mojolicious::Plugin::Jam::Form::Field>,
+L<Mojolicious::Plugin::Jam::Form::Style>
+
+L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>
+
+=head1 DEPENDENCIES
+
+This module depends on Perl, L<Mojolicious>, L<IO::Socket::SSL>, and
+OpenSSL.
+
+=head1 SOURCE REPOSITORY
+
+L<http://github.com/qtfk/Mojolicious-Plugin-Jam>
+
+=head2 Installation
+
+The included install.sh (and dist.sh) scripts should enable easy
+installation on Mac, Linux and Cygwin environments that use cpanm (CPAN
+Minus) to manage their CPAN modules.
+This procedure downloads L<Mojolicious::Plugin::Jam> from
+Github, then builds and installs it:
+
+ git clone https://github.com/qtfk/Mojolicious-Plugin-Jam.git
+ cd Mojolicious-Plugin-Jam
+ ./scripts/install.sh
+
+=head1 AUTHOR
+
+qtfk <mojolicious-plugin-jam@qtfk.net>
+
+=head1 COPYRIGHT AND LICENSE
+
+jQuery has the following copyright and licensing banner:
+
+ /*!
+  * jQuery JavaScript Library v1.10.2
+  * http://jquery.com/
+  *
+  * Includes Sizzle.js
+  * http://sizzlejs.com/
+  *
+  * Copyright 2005, 2013 jQuery Foundation, Inc. and other contributors
+  * Released under the MIT license
+  * http://jquery.org/license
+  *
+  * Date: 2013-07-03T13:48Z
+  */
+
+jQuery UI has the following copyright and licensing banner:
+
+ /*! jQuery UI - v1.10.3 - 2013-05-03
+ * http://jqueryui.com
+ * Copyright 2013 jQuery Foundation and other contributors; Licensed MIT */
+
+jQuery Validation Plugin has the following copyright and licensing banner:
+
+ /*!
+  * jQuery Validation Plugin 1.11.1
+  *
+  * http://bassistance.de/jquery-plugins/jquery-plugin-validation/
+  * http://docs.jquery.com/Plugins/Validation
+  *
+  * Copyright 2013 Jörn Zaefferer
+  * Released under the MIT license:
+  *   http://www.opensource.org/licenses/mit-license.php
+  */
+
+jQuery Tools has the following copyright and licensing banner:
+
+ /*!
+  * jQuery Tools v1.2.7 - The missing UI library for the Web
+  *
+  * NO COPYRIGHTS OR LICENSES. DO WHAT YOU LIKE.
+  *
+  * http://flowplayer.org/tools/
+  *
+  */
+
+Copyright (C) 2013 by qtfk
+
+This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+=cut
