@@ -1,6 +1,6 @@
 #!/bin/sh
 
-v="20130716"
+v="20130717"
 n="Mojolicious-Plugin-Jam-$v"
 
 ./scripts/doc.sh
