@@ -1,0 +1,494 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title></title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:mojolicious-plugin-jam@qtfk.net" />
+</head>
+
+<body style="background-color: white">
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#PROPERTIES">PROPERTIES</a>
+    <ul>
+      <li><a href="#id">id</a></li>
+      <li><a href="#type">type</a></li>
+      <li><a href="#name">name</a></li>
+      <li><a href="#value">value</a></li>
+      <li><a href="#attribs">attribs</a></li>
+      <li><a href="#flags">flags</a></li>
+      <li><a href="#label">label</a></li>
+      <li><a href="#validation_attribs">validation_attribs</a></li>
+      <li><a href="#rules">rules</a></li>
+      <li><a href="#validation">validation</a></li>
+      <li><a href="#form">form</a></li>
+    </ul>
+  </li>
+  <li><a href="#TYPES">TYPES</a>
+    <ul>
+      <li><a href="#text">text</a></li>
+      <li><a href="#email">email</a></li>
+      <li><a href="#url">url</a></li>
+      <li><a href="#date">date</a></li>
+      <li><a href="#datetime">datetime</a></li>
+      <li><a href="#month">month</a></li>
+      <li><a href="#week">week</a></li>
+      <li><a href="#time">time</a></li>
+      <li><a href="#number">number</a></li>
+      <li><a href="#range">range</a></li>
+      <li><a href="#password">password</a></li>
+      <li><a href="#file">file</a></li>
+      <li><a href="#search">search</a></li>
+      <li><a href="#color">color</a></li>
+      <li><a href="#button">button</a></li>
+      <li><a href="#submit">submit</a></li>
+      <li><a href="#reset">reset</a></li>
+      <li><a href="#Coming-soon">Coming soon</a>
+        <ul>
+          <li><a href="#hidden">hidden</a></li>
+          <li><a href="#checkbox">checkbox</a></li>
+          <li><a href="#radio">radio</a></li>
+          <li><a href="#textarea">textarea</a></li>
+          <li><a href="#select">select</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#html">html</a></li>
+      <li><a href="#valid">valid</a></li>
+    </ul>
+  </li>
+  <li><a href="#ATTRIBUTE-VALIDATION-METHODS">ATTRIBUTE VALIDATION METHODS</a>
+    <ul>
+      <li><a href="#minlength">minlength</a></li>
+      <li><a href="#maxlength">maxlength</a></li>
+      <li><a href="#rangelength">rangelength</a></li>
+      <li><a href="#min">min</a></li>
+      <li><a href="#max">max</a></li>
+      <li><a href="#step">step</a></li>
+      <li><a href="#range1">range</a></li>
+      <li><a href="#required">required</a></li>
+    </ul>
+  </li>
+  <li><a href="#OTHER-ATTRIBUTE-METHODS">OTHER ATTRIBUTE METHODS</a>
+    <ul>
+      <li><a href="#autofocus">autofocus</a></li>
+      <li><a href="#checked">checked</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#SOURCE-REPOSITORY">SOURCE REPOSITORY</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Mojolicious::Plugin::Jam::Form::Field - HTML form field object</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code> my $field = Mojolicious::Plugin::Jam::Form::Field-&gt;new;
+ 
+ print &quot;$field\n&quot;;
+ # prints &quot;&lt;input type=\&quot;text\&quot; /&gt;\n&quot;
+
+ $field-&gt;name(&#39;a&#39;);
+ $field-&gt;type(&#39;email&#39;);
+ 
+ print &quot;$field\n&quot;;
+ # print &quot;&lt;input type=\&quot;email\&quot; name=\&quot;a\&quot; /&gt;\n&quot;
+
+ # In controller:
+ $self-&gt;stash(field =&gt; $field);
+
+ # In view:
+ %== $field
+
+ # Server-side validation
+ my $field = $self-&gt;stash(&#39;field&#39;);
+ $field-&gt;value($self-&gt;param($field-&gt;name)); # set the value from param()
+ if ($field-&gt;valid) {
+   # do something
+ } else {
+   # do something else
+ }</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Mojolicious::Plugin::Jam::Form::Field provides an object-based representation of an HTML form field.</p>
+
+<p>It exhibits the following features:</p>
+
+<ul>
+
+<li><p>Modern Perl-ish API allows method chaining</p>
+
+</li>
+<li><p>2 mechanisms for client-side validation: HTML5 attributes and jQuery Validate Plugin</p>
+
+</li>
+<li><p>2 mechanisms for server-side validation: regular expressions and subroutines</p>
+
+</li>
+<li><p>All 4 validation mechanisms are enabled via the initial definition of the field&#39;s criteria</p>
+
+</li>
+</ul>
+
+<p>Each field consists of 4 distinct elements: label, input, error and script. Each of these elements are wrapped in a div. Each div is subsequently wrapped in another div representing the entire field. This organization allows the Mojolicious developer to focus on the characteristics of the field, as well as the web designer to craft CSS for styling the form. Each distinct element shares a class with other form elements enabling precise control over all elements in the field and across all fields in the form.</p>
+
+<h1 id="PROPERTIES">PROPERTIES</h1>
+
+<h2 id="id">id</h2>
+
+<p>Get/set the field id</p>
+
+<h2 id="type">type</h2>
+
+<p>Get/set the field type, see the <a href="#TYPES">&quot;TYPES&quot;</a> section for more details</p>
+
+<h2 id="name">name</h2>
+
+<p>Get/set the field name</p>
+
+<h2 id="value">value</h2>
+
+<p>Get/set the field value</p>
+
+<h2 id="attribs">attribs</h2>
+
+<p>Get/set/add to the field attributes hashref</p>
+
+<h2 id="flags">flags</h2>
+
+<p>Get/set/add to the field flag attributes hashref</p>
+
+<h2 id="label">label</h2>
+
+<p>Get/set the field label</p>
+
+<h2 id="validation_attribs">validation_attribs</h2>
+
+<p>Default: 0. If true, force use of HTML5 validation attributes instead of using the jQuery Validate Plugin</p>
+
+<h2 id="rules">rules</h2>
+
+<p>Get/set/add to the field validation rules for client-side validation</p>
+
+<h2 id="validation">validation</h2>
+
+<p>Get/set/add to the field validation arrayref of anonymous subroutines for server-side validation</p>
+
+<p>Both the attribute validation methods and type-based regular expressions and subroutines push to this arrayref, which are documented in the <a href="#VALIDATION-ATTRIBUTES-METHODS">&quot;VALIDATION ATTRIBUTES METHODS&quot;</a> and <a>TYPES</a> sections, respectively.</p>
+
+<p>If your needs exceed the built-in type- and attribute-based validation, you can add your own custom subroutine like this:</p>
+
+<pre><code> push @{$field-&gt;validation}, sub {
+   my $v = shift;
+   # ...
+ };</code></pre>
+
+<h2 id="form">form</h2>
+
+<p>Reference to a parent <a>Mojolicious::Plugin::Jam::Form</a> object</p>
+
+<h1 id="TYPES">TYPES</h1>
+
+<p>This section documents the field types that <a>Mojolicious::Plugin::Jam::Form::Field</a> supports. It also delineates which attribute validation methods are appropriate for each type, as well as details about the regular expression and subroutine-based validation on the server-side.</p>
+
+<h2 id="text">text</h2>
+
+<p>Attribute validation: required, minlength, maxlength, rangelength</p>
+
+<p>Regular expresion validation: none</p>
+
+<p>Subroutine validation: none</p>
+
+<h2 id="email">email</h2>
+
+<p>Attribute validation: required, minlength, maxlength, rangelength</p>
+
+<p>Regular expresion validation: <code>/^[\dA-Z._%+-]+@[\dA-Z.-]+\.[A-Z]+$/i</code></p>
+
+<p>Subroutine validation: none</p>
+
+<h2 id="url">url</h2>
+
+<p>Attribute validation: required, minlength, maxlength, rangelength</p>
+
+<p>Regular expresion validation: <code>/^(https?|ftp):\/\/[\dA-Z.-]+\.[A-Z]+/i</code></p>
+
+<p>Subroutine validation: none</p>
+
+<h2 id="date">date</h2>
+
+<p>Attribute validation: required</p>
+
+<p>Regular expresion validation: <code>/^\d{4}-\d{2}-\d{2}$/</code></p>
+
+<p>Subroutine validation: parses tokens, then runs <a>Time::Local</a>&#39;s timelocal() function</p>
+
+<h2 id="datetime">datetime</h2>
+
+<p>Attribute validation: required</p>
+
+<p>Regular expresion validation: <code>/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(.\d)?$/</code></p>
+
+<p>Subroutine validation: parses tokens, then runs <a>Time::Local</a>&#39;s timelocal() function</p>
+
+<p>This is actually shorthand for &#39;datetime-local&#39; which is more supported than &#39;datetime&#39;.</p>
+
+<h2 id="month">month</h2>
+
+<p>Attribute validation: required</p>
+
+<p>Regular expresion validation: <code>/^\d{4}-\d{2}$/</code></p>
+
+<p>Subroutine validation: parses tokens, then runs <a>Time::Local</a>&#39;s timelocal() function</p>
+
+<h2 id="week">week</h2>
+
+<p>Attribute validation: required</p>
+
+<p>Regular expresion validation: <code>/^\d{4}-W\d{2}$/</code></p>
+
+<p>Subroutine validation: parses tokens, then runs <a>Time::Local</a>&#39;s timelocal() function</p>
+
+<h2 id="time">time</h2>
+
+<p>Attribute validation: required</p>
+
+<p>Regular expresion validation: <code>/^\d{2}:\d{2}$/</code></p>
+
+<p>Subroutine validation: parses values, then confirms hour is 00-23 and minute is 00-59</p>
+
+<h2 id="number">number</h2>
+
+<p>Attribute validation: required, min, max, step, range</p>
+
+<p>Regular expresion validation: <code>/^\d+(\.\d+)?$/</code></p>
+
+<p>Subroutine validation: none</p>
+
+<h2 id="range">range</h2>
+
+<p>Attribute validation: required, min, max, step</p>
+
+<p>Regular expresion validation: <code>/^\d+(\.\d+)?$/</code></p>
+
+<p>Subroutine validation: none</p>
+
+<h2 id="password">password</h2>
+
+<p>Attribute validation: required, minlength, maxlength, rangelength</p>
+
+<p>Regular expresion validation: none</p>
+
+<p>Subroutine validation: none</p>
+
+<h2 id="file">file</h2>
+
+<p>Attribute validation: required, minlength, maxlength, rangelength</p>
+
+<p>Regular expresion validation: none</p>
+
+<p>Subroutine validation: none</p>
+
+<h2 id="search">search</h2>
+
+<p>Attribute validation: required, minlength, maxlength, rangelength</p>
+
+<p>Regular expresion validation: none</p>
+
+<p>Subroutine validation: none</p>
+
+<h2 id="color">color</h2>
+
+<p>Attribute validation: none</p>
+
+<p>Regular expresion validation: <code>/^#[\da-f]{8}$/i</code></p>
+
+<p>Subroutine validation: none</p>
+
+<h2 id="button">button</h2>
+
+<h2 id="submit">submit</h2>
+
+<h2 id="reset">reset</h2>
+
+<h2 id="Coming-soon">Coming soon</h2>
+
+<h3 id="hidden">hidden</h3>
+
+<h3 id="checkbox">checkbox</h3>
+
+<h3 id="radio">radio</h3>
+
+<h3 id="textarea">textarea</h3>
+
+<h3 id="select">select</h3>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="html">html</h2>
+
+<p>Generate and return the HTML for the field. This method is called when the object is treated as a string via overloading.</p>
+
+<h2 id="valid">valid</h2>
+
+<p>Runs each validation subroutine in the field&#39;s validation arrayref of anonymous subroutines. Returns 0 on the first failure, 1 if all pass.</p>
+
+<h1 id="ATTRIBUTE-VALIDATION-METHODS">ATTRIBUTE VALIDATION METHODS</h1>
+
+<p>The following are methods used to configure the validation of fields. Each one sets either HTML5 validation attributes or jQuery Validate Plugin rules and server-side validation subroutines. In the case where the field belongs to a form (the &#39;form&#39; property is defined), the jQuery Validation Plugin rules are added to the &#39;rules&#39; property of the form instead of the field. All return the field object to allow method chaining, i.e.:</p>
+
+<pre><code> my $field = $field-&gt;minlength(3)-&gt;required;</code></pre>
+
+<p>Calling the same validation method more than once for a field may have undesirable effects since each one pushes server-side validation subroutines to the field validation arrayref, which are run in order and all must pass to be declared valid.</p>
+
+<p>Also, since these are methods as opposed to properties, they must be called on the field object, not as arguments to new().</p>
+
+<h2 id="minlength">minlength</h2>
+
+<p>Define a minimum length for a field</p>
+
+<pre><code> $field-&gt;minlength($min);</code></pre>
+
+<h2 id="maxlength">maxlength</h2>
+
+<p>Define a maximum length for a field</p>
+
+<pre><code> $field-&gt;maxlength($max);</code></pre>
+
+<h2 id="rangelength">rangelength</h2>
+
+<p>Define a length range (minimum and maximum) for a field</p>
+
+<pre><code> $field-&gt;rangelength($min, $max);</code></pre>
+
+<h2 id="min">min</h2>
+
+<p>Define a minimum numerical value for a field. Valid for number and range types.</p>
+
+<pre><code> $field-&gt;min($min);</code></pre>
+
+<h2 id="max">max</h2>
+
+<p>Define a maximum numerical value for a field. Valid for number and range types.</p>
+
+<pre><code> $field-&gt;max($max);</code></pre>
+
+<h2 id="step">step</h2>
+
+<p>Define a step value for a field. Valid for number and range types.</p>
+
+<pre><code> $field-&gt;step($step);</code></pre>
+
+<h2 id="range1">range</h2>
+
+<p>Define a numerical range (minimum and maximum) for a field. Valid for number and range types.</p>
+
+<pre><code> $field-&gt;range($min, $max);</code></pre>
+
+<h2 id="required">required</h2>
+
+<p>Define a field to be required (defined)</p>
+
+<pre><code> $field-&gt;required;</code></pre>
+
+<h1 id="OTHER-ATTRIBUTE-METHODS">OTHER ATTRIBUTE METHODS</h1>
+
+<h2 id="autofocus">autofocus</h2>
+
+<p>Set field to have autofocus</p>
+
+<pre><code> $field-&gt;autofocus;</code></pre>
+
+<h2 id="checked">checked</h2>
+
+<p>Set field to be checked</p>
+
+<pre><code> $field-&gt;checked;</code></pre>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>Github Pages</p>
+
+<ul>
+
+<li><p><a href="http://qtfk.github.io/Mojolicious-Plugin-Jam">Mojolicious::Plugin::Jam</a></p>
+
+</li>
+<li><p><a href="http://qtfk.github.io/Mojolicious-Plugin-Jam/Form">Mojolicious::Plugin::Jam::Form</a></p>
+
+</li>
+<li><p><a href="http://qtfk.github.io/Mojolicious-Plugin-Jam/Form/Field">Mojolicious::Plugin::Jam::Form::Field</a></p>
+
+</li>
+</ul>
+
+<p>CPAN(?)</p>
+
+<ul>
+
+<li><p><a>Mojolicious::Plugin::Jam</a></p>
+
+</li>
+<li><p><a>Mojolicious::Plugin::Jam::Form</a></p>
+
+</li>
+<li><p><a>Mojolicious::Plugin::Jam::Form::Button</a></p>
+
+</li>
+<li><p><a>Mojolicious::Plugin::Jam::Form::Field</a></p>
+
+</li>
+<li><p><a>Mojolicious::Plugin::Jam::Form::Style</a></p>
+
+</li>
+</ul>
+
+<p>Mojolicious</p>
+
+<ul>
+
+<li><p><a>Mojolicious</a></p>
+
+</li>
+<li><p><a>Mojolicious::Guides</a></p>
+
+</li>
+<li><p><a href="http://mojolicio.us">http://mojolicio.us</a></p>
+
+</li>
+</ul>
+
+<h1 id="SOURCE-REPOSITORY">SOURCE REPOSITORY</h1>
+
+<p><a href="http://github.com/qtfk/Mojolicious-Plugin-Jam">http://github.com/qtfk/Mojolicious-Plugin-Jam</a></p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>qtfk, &lt;mojolicious-plugin-jam@qtfk.net&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (C) 2013 by qtfk</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+

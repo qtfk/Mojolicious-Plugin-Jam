@@ -1,0 +1,458 @@
+=head1 NAME
+
+Mojolicious::Plugin::Jam::Form::Field - HTML form field object
+
+=head1 SYNOPSIS
+
+ my $field = Mojolicious::Plugin::Jam::Form::Field->new;
+ 
+ print "$field\n";
+ # prints "<input type=\"text\" />\n"
+
+ $field->name('a');
+ $field->type('email');
+ 
+ print "$field\n";
+ # print "<input type=\"email\" name=\"a\" />\n"
+
+ # In controller:
+ $self->stash(field => $field);
+
+ # In view:
+ %== $field
+
+ # Server-side validation
+ my $field = $self->stash('field');
+ $field->value($self->param($field->name)); # set the value from param()
+ if ($field->valid) {
+   # do something
+ } else {
+   # do something else
+ }
+
+=head1 DESCRIPTION
+
+Mojolicious::Plugin::Jam::Form::Field provides an object-based
+representation of an HTML form field.
+
+It exhibits the following features:
+
+=over
+
+=item *
+
+Modern Perl-ish API allows method chaining
+
+=item *
+
+2 mechanisms for client-side validation: HTML5 attributes and jQuery
+Validate Plugin
+
+=item *
+
+2 mechanisms for server-side validation: regular expressions and
+subroutines
+
+=item *
+
+All 4 validation mechanisms are enabled via the initial definition of the
+field's criteria
+
+=back
+
+Each field consists of 4 distinct elements: label, input, error and script.
+Each of these elements are wrapped in a div.
+Each div is subsequently wrapped in another div representing the entire
+field.
+This organization allows the Mojolicious developer to focus on the
+characteristics of the field, as well as the web designer to craft CSS for
+styling the form.
+Each distinct element shares a class with other form elements enabling
+precise control over all elements in the field and across all fields in the
+form.
+
+=head1 PROPERTIES
+
+=head2 id
+
+Get/set the field id
+
+=head2 type
+
+Get/set the field type, see the L</TYPES> section for more details
+
+=head2 name
+
+Get/set the field name
+
+=head2 value
+
+Get/set the field value
+
+=head2 attribs
+
+Get/set/add to the field attributes hashref
+
+=head2 flags
+
+Get/set/add to the field flag attributes hashref
+
+=head2 label
+
+Get/set the field label
+
+=head2 validation_attribs
+
+Default: 0.
+If true, force use of HTML5 validation attributes instead of using the
+jQuery Validate Plugin
+
+=head2 rules
+
+Get/set/add to the field validation rules for client-side validation
+
+=head2 validation
+
+Get/set/add to the field validation arrayref of anonymous subroutines for
+server-side validation
+
+Both the attribute validation methods and type-based regular expressions
+and subroutines push to this arrayref, which are documented in the
+L</VALIDATION ATTRIBUTES METHODS> and L<TYPES> sections, respectively.
+
+If your needs exceed the built-in type- and attribute-based validation, you
+can add your own custom subroutine like this:
+
+ push @{$field->validation}, sub {
+   my $v = shift;
+   # ...
+ };
+
+=head2 form
+
+Reference to a parent L<Mojolicious::Plugin::Jam::Form> object
+
+=head1 TYPES
+
+This section documents the field types that
+L<Mojolicious::Plugin::Jam::Form::Field> supports.
+It also delineates which attribute validation methods are appropriate for
+each type, as well as details about the regular expression and
+subroutine-based validation on the server-side.
+
+=head2 text
+
+Attribute validation: required, minlength, maxlength, rangelength
+
+Regular expresion validation: none
+
+Subroutine validation: none
+
+=head2 email
+
+Attribute validation: required, minlength, maxlength, rangelength
+
+Regular expresion validation: C</^[\dA-Z._%+-]+@[\dA-Z.-]+\.[A-Z]+$/i>
+
+Subroutine validation: none
+
+=head2 url
+
+Attribute validation: required, minlength, maxlength, rangelength
+
+Regular expresion validation: C</^(https?|ftp):\/\/[\dA-Z.-]+\.[A-Z]+/i>
+
+Subroutine validation: none
+
+=head2 date
+
+Attribute validation: required
+
+Regular expresion validation: C</^\d{4}-\d{2}-\d{2}$/>
+
+Subroutine validation: parses tokens, then runs L<Time::Local>'s
+timelocal() function
+
+=head2 datetime
+
+Attribute validation: required
+
+Regular expresion validation:
+C</^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(.\d)?$/>
+
+Subroutine validation: parses tokens, then runs L<Time::Local>'s
+timelocal() function
+
+This is actually shorthand for 'datetime-local' which is more supported
+than 'datetime'.
+
+=head2 month
+
+Attribute validation: required
+
+Regular expresion validation: C</^\d{4}-\d{2}$/>
+
+Subroutine validation: parses tokens, then runs L<Time::Local>'s
+timelocal() function
+
+=head2 week
+
+Attribute validation: required
+
+Regular expresion validation: C</^\d{4}-W\d{2}$/>
+
+Subroutine validation: parses tokens, then runs L<Time::Local>'s
+timelocal() function
+
+=head2 time
+
+Attribute validation: required
+
+Regular expresion validation: C</^\d{2}:\d{2}$/>
+
+Subroutine validation: parses values, then confirms hour is 00-23 and
+minute is 00-59
+
+=head2 number
+
+Attribute validation: required, min, max, step, range
+
+Regular expresion validation: C</^\d+(\.\d+)?$/>
+
+Subroutine validation: none
+
+=head2 range
+
+Attribute validation: required, min, max, step
+
+Regular expresion validation: C</^\d+(\.\d+)?$/>
+
+Subroutine validation: none
+
+=head2 password
+
+Attribute validation: required, minlength, maxlength, rangelength
+
+Regular expresion validation: none
+
+Subroutine validation: none
+
+=head2 file
+
+Attribute validation: required, minlength, maxlength, rangelength
+
+Regular expresion validation: none
+
+Subroutine validation: none
+
+=head2 search
+
+Attribute validation: required, minlength, maxlength, rangelength
+
+Regular expresion validation: none
+
+Subroutine validation: none
+
+=head2 color
+
+Attribute validation: none
+
+Regular expresion validation: C</^#[\da-f]{8}$/i>
+
+Subroutine validation: none
+
+=head2 button
+
+=head2 submit
+
+=head2 reset
+
+=head2 Coming soon
+
+=head3 hidden
+
+=head3 checkbox
+
+=head3 radio
+
+=head3 textarea
+
+=head3 select
+
+=head1 METHODS
+
+=head2 html
+
+Generate and return the HTML for the field. This method is called when the 
+object is treated as a string via overloading.
+
+=head2 valid
+
+Runs each validation subroutine in the field's validation arrayref of
+anonymous subroutines. Returns 0 on the first failure, 1 if all pass.
+
+=head1 ATTRIBUTE VALIDATION METHODS
+
+The following are methods used to configure the validation of fields.
+Each one sets either HTML5 validation attributes or jQuery Validate Plugin
+rules and server-side validation subroutines.
+In the case where the field belongs to a form (the 'form' property is
+defined), the jQuery Validation Plugin rules are added to the 'rules'
+property of the form instead of the field.
+All return the field object to allow method chaining, i.e.:
+
+ my $field = $field->minlength(3)->required;
+
+Calling the same validation method more than once for a field may have
+undesirable effects since each one pushes server-side validation
+subroutines to the field validation arrayref, which are run in order and
+all must pass to be declared valid.
+
+Also, since these are methods as opposed to properties, they must be called
+on the field object, not as arguments to new().
+
+=head2 minlength
+
+Define a minimum length for a field
+
+ $field->minlength($min);
+
+=head2 maxlength
+
+Define a maximum length for a field
+
+ $field->maxlength($max);
+
+=head2 rangelength
+
+Define a length range (minimum and maximum) for a field
+
+ $field->rangelength($min, $max);
+
+=head2 min
+
+Define a minimum numerical value for a field.
+Valid for number and range types.
+
+ $field->min($min);
+
+=head2 max
+
+Define a maximum numerical value for a field.
+Valid for number and range types.
+
+ $field->max($max);
+
+=head2 step
+
+Define a step value for a field.
+Valid for number and range types.
+
+ $field->step($step);
+
+=head2 range
+
+Define a numerical range (minimum and maximum) for a field.
+Valid for number and range types.
+
+ $field->range($min, $max);
+
+=head2 required
+
+Define a field to be required (defined)
+
+ $field->required;
+
+=head1 OTHER ATTRIBUTE METHODS
+
+=head2 autofocus
+
+Set field to have autofocus
+
+ $field->autofocus;
+
+=head2 checked
+
+Set field to be checked
+
+ $field->checked;
+
+=head1 SEE ALSO
+
+Github Pages
+
+=over
+
+=item *
+
+L<Mojolicious::Plugin::Jam|http://qtfk.github.io/Mojolicious-Plugin-Jam>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form::Field|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form/Field>
+
+=back
+
+CPAN(?)
+
+=over
+
+=item *
+
+L<Mojolicious::Plugin::Jam>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form::Button>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form::Field>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form::Style>
+
+=back
+
+Mojolicious
+
+=over
+
+=item *
+
+L<Mojolicious>
+
+=item *
+
+L<Mojolicious::Guides>
+
+=item *
+
+L<http://mojolicio.us>
+
+=back
+
+=head1 SOURCE REPOSITORY
+
+L<http://github.com/qtfk/Mojolicious-Plugin-Jam>
+
+=head1 AUTHOR
+
+qtfk, <mojolicious-plugin-jam@qtfk.net>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2013 by qtfk
+
+This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+=cut
