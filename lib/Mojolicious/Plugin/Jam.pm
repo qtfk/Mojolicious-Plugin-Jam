@@ -1,7 +1,7 @@
 package Mojolicious::Plugin::Jam;
 use Mojo::Base 'Mojolicious::Plugin';
 
-our $VERSION = '20130717';
+our $VERSION = '20130719';
 
 use Digest::SHA 'sha256_hex';
 use File::Basename 'dirname';

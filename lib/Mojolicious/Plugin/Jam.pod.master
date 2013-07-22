@@ -292,7 +292,7 @@ login
 
 =back
 
-For the rest of the options, see the L<Mojolicious::Plugin::Jam::Form> documentation.
+For the rest of the options, see the L<Mojolicious::Plugin::Jam::Form|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form> documentation.
 
 =head2 security
 
@@ -319,6 +319,90 @@ expired, generates a self-signed certficate with OpenSSL
 Automatically configures Hypnotoad to listen for unencrypted requests via
 HTTP and redirects them to the HTTPS port
 
+The default HTTP and HTTPS ports are 3000 and 3001, respectively.
+You might be tempted to run your app as root and configure these to be 80
+and 443... don't.
+Even with some privilege-dropping technique, it is probably better overall
+to run your app as a dedicated user and set up port redirection using
+IPTables (or UFW).
+Here are instructions for both:
+
+=over
+
+=item *
+
+UFW
+
+=over
+
+=item 1.
+
+Add the below to C</etc/ufw/before.rules>.
+
+ *nat
+ :PREROUTING ACCEPT [0:0]
+ :POSTROUTING ACCEPT [0:0]
+ :OUTPUT ACCEPT [0:0]
+ -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3000
+ -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 3001
+ COMMIT
+
+=item 2.
+
+Allow ports 80, 443, 3000, and 3001:
+
+ for port in 80 443 3000 3001; do ufw allow $port/tcp; done
+
+=item 3.
+
+Restart UFW via C<service ufw restart> or C</etc/init.d/ufw restart>.
+
+=back
+
+=item *
+
+IPTables
+
+=over
+
+=item 1.
+
+Save your current configuration with C<< iptables-save >iptables.conf >>
+and back it up: C<cp iptables.conf iptables.conf.bak>.
+
+=item 2.
+
+Edit C<iptables.conf> and add the REDIRECT lines in the following to the
+nat table.
+If you don't have a nat table, you can add the whole block.
+
+ *nat
+ :PREROUTING ACCEPT [0:0]
+ :POSTROUTING ACCEPT [0:0]
+ :OUTPUT ACCEPT [0:0]
+ -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3000
+ -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 3001
+ COMMIT
+
+=item 3.
+
+Add the following lines to the filter table in C<iptables.conf> to allow
+ports 80, 443, 3000, and 3001.
+
+ -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+ -A INPUT -p tcp -m tcp --dport 443 -j ACCEPT
+ -A INPUT -p tcp -m tcp --dport 3000 -j ACCEPT
+ -A INPUT -p tcp -m tcp --dport 3001 -j ACCEPT
+ -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+=item 4.
+
+Load the new configuration via C<iptables-restore <iptables.conf>.
+
+=back
+
+=back
+
 =item *
 
 Morbo can be used with proper listen arguments:
@@ -326,7 +410,7 @@ Morbo can be used with proper listen arguments:
  morbo -l 'http://*:3000' \
  -l "https://*:3001?key=$HOME/.mojolicious/server.key&cert=$HOME/.mojolicious/server.crt"
 
-Or use scripts/security/morbo.pl:
+Or use C<scripts/security/morbo.pl>:
 
  ./scripts/security/morbo.pl examples/security/test
 
@@ -479,9 +563,9 @@ but goes about it differently.
 
 The first example uses the built-in 'login' form.
 The second example uses built-in fields defined in
-L<Mojolicious::Plugin::Jam::Form>.
+L<Mojolicious::Plugin::Jam::Form|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form>.
 The third example uses the 'field' method in
-L<Mojolicious::Plugin::Jam::Form> to create each field.
+L<Mojolicious::Plugin::Jam::Form|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form> to create each field.
 
 All three examples produce this page:
 
@@ -489,7 +573,7 @@ All three examples produce this page:
 
 These examples use the built-in 'horizontal' style, but you can use any
 other built-in styles, the 'style' method in
-L<Mojolicious::Plugin::Jam::Form>, or a
+L<Mojolicious::Plugin::Jam::Form|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form>, or a
 L<Mojolicious::Plugin::Jam::Form::Style> object to style forms.
 
 =head3 login1
@@ -529,17 +613,89 @@ HTML:
 
 =head1 SEE ALSO
 
-L<jQuery|http://jquery.com/>,
-L<jQuery UI|http://jqueryui.com/>,
-L<jQuery Validation plugin|http://jqueryvalidation.org/>,
-L<jQuery Tools|http://jquerytools.org/>
+Github Pages
 
-L<Mojolicious::Plugin::Jam::Form>,
-L<Mojolicious::Plugin::Jam::Form::Button>,
-L<Mojolicious::Plugin::Jam::Form::Field>,
+=over
+
+=item *
+
+L<Mojolicious::Plugin::Jam|http://qtfk.github.io/Mojolicious-Plugin-Jam>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form::Field|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form/Field>
+
+=back
+
+CPAN(?)
+
+=over
+
+=item *
+
+L<Mojolicious::Plugin::Jam>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form::Button>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form::Field>
+
+=item *
+
 L<Mojolicious::Plugin::Jam::Form::Style>
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>
+=back
+
+Mojolicious
+
+=over
+
+=item *
+
+L<Mojolicious>
+
+=item *
+
+L<Mojolicious::Guides>
+
+=item *
+
+L<http://mojolicio.us>
+
+=back
+
+jQuery Links
+
+=over
+
+=item *
+
+L<jQuery|http://jquery.com/>
+
+=item *
+
+L<jQuery UI|http://jqueryui.com/>
+
+=item *
+
+L<jQuery Validation plugin|http://jqueryvalidation.org/>
+
+=item *
+
+L<jQuery Tools|http://jquerytools.org/>
+
+=back
 
 =head1 DEPENDENCIES
 
@@ -568,7 +724,13 @@ qtfk <mojolicious-plugin-jam@qtfk.net>
 
 =head1 COPYRIGHT AND LICENSE
 
-jQuery has the following copyright and licensing banner:
+Copyright (C) 2013 by qtfk
+
+This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+=head2 Bundled content
+
+=head3 jQuery
 
  /*!
   * jQuery JavaScript Library v1.10.2
@@ -584,13 +746,13 @@ jQuery has the following copyright and licensing banner:
   * Date: 2013-07-03T13:48Z
   */
 
-jQuery UI has the following copyright and licensing banner:
+=head3 jQuery UI
 
  /*! jQuery UI - v1.10.3 - 2013-05-03
  * http://jqueryui.com
  * Copyright 2013 jQuery Foundation and other contributors; Licensed MIT */
 
-jQuery Validation Plugin has the following copyright and licensing banner:
+=head3 jQuery Validation Plugin
 
  /*!
   * jQuery Validation Plugin 1.11.1
@@ -603,7 +765,7 @@ jQuery Validation Plugin has the following copyright and licensing banner:
   *   http://www.opensource.org/licenses/mit-license.php
   */
 
-jQuery Tools has the following copyright and licensing banner:
+=head3 jQuery Tools
 
  /*!
   * jQuery Tools v1.2.7 - The missing UI library for the Web
@@ -613,9 +775,5 @@ jQuery Tools has the following copyright and licensing banner:
   * http://flowplayer.org/tools/
   *
   */
-
-Copyright (C) 2013 by qtfk
-
-This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
 =cut

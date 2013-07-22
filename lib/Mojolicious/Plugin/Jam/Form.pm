@@ -13,8 +13,10 @@ use overload '""' => \&html;
 
 has id => 'form';
 has action => undef;
-has method => 'GET';
+has method => 'AJAX';
 has fields => sub { [] };
+has fields_hash => sub { {} };
+has hiddens => sub { [] };
 has buttons => sub { [] };
 has style => sub {
   my $self = shift;
@@ -22,6 +24,8 @@ has style => sub {
   $style->builtin('default');
   return $style;
 };
+#has ajax => undef;
+has redirect => '';
 
 # autogenerate field names
 has _names => sub { {} };
@@ -57,7 +61,8 @@ sub field {
   # It also provides some error checking, such as autogenerating and
   # deconflicting field names.
 
-  my $field = Mojolicious::Plugin::Jam::Form::Field->new(form => $self, @_);
+  my $field = Mojolicious::Plugin::Jam::Form::Field->new(
+    form => $self, @_);
 
   # If field doesn't have a name, generate a one-up name in the range a, b,
   # ..., z, aa, ab, ...:
@@ -92,15 +97,22 @@ sub field {
   }
 
   # Add the field
-  push @{$self->fields}, $field;
+  if ($field->type eq 'hidden') {
+    push @{$self->hiddens}, $field;
+  } else {
+    push @{$self->fields}, $field;
+  }
+  $self->fields_hash->{$field->name} = $field;
 
   return $field;
 }
 
 sub button {
   my $self = shift;
-  my $button = Mojolicious::Plugin::Jam::Form::Button->new(@_);
-  # add class: "${formid}_buttons"
+  my %o = @_;
+  my $id = $self->id;
+  $o{class} = "${id}_inputs";
+  my $button = Mojolicious::Plugin::Jam::Form::Button->new(%o);
   push @{$self->buttons}, $button;
   return $button;
 }
@@ -127,9 +139,15 @@ sub _bi_field {
   return $self->field(%o);
 }
 my @types = (qw/text email url date datetime month week time number/,
-             qw/range password file search color/);
-             #qw/checkbox radio textarea select hidden/
+             qw/range password file search color checkbox/);
+             # checkbox radio textarea select
 eval "sub $_ { shift->_bi_field('$_', \@_) }" for @types;
+
+sub hidden {
+  my ($self, %o) = @_;
+  $o{type} = 'hidden';
+  return $self->field(%o);
+}
 
 # Common fields
 my @common = qw/username/;
@@ -141,6 +159,7 @@ eval "sub $_ { shift->_bi_field('$_', \@_) }" for @common;
 sub _bi_button {
   my ($self, $type, %o) = @_;
   $o{$_} = $type for qw/id type/;
+  $o{value} = 'Submit' if $type eq 'submit';
   return $self->button(%o);
 }
 my @buttons = qw/submit reset/;
@@ -152,8 +171,10 @@ sub html {
   my $self = shift;
 
   my $id = $self->id;
-  my $method = $self->method;
+  my $method = uc $self->method;
   my $action = $self->action;
+  my $ajax = undef; #$self->ajax;
+  my $redirect = $self->redirect;
 
   die "FATAL: Form does not have an id!\n" unless defined $id && $id;
 
@@ -170,13 +191,15 @@ sub html {
   # Start form tag
   $html .= "<form";
   $html .= " id=\"$id\"";
-  $html .= " method=\"$method\"" if defined $method;
-  $html .= " action=\"$action\"" if defined $action;
+  if (defined $method && $method =~ /^(GET|POST)$/) {
+    $html .= " method=\"$method\"";
+    $html .= " action=\"$action\"" if defined $action;
+  }
   $html .= ">\n";
 
   # Fields
   for (@{$self->fields}) {
-    $html .= $_->html . "\n";
+    $html .= "$_\n";
   }
 
   # Buttons
@@ -192,6 +215,13 @@ HTML
     $html .= "</div>\n</div>\n";
   }
 
+  # Hidden fields
+  if (@{$self->hiddens}) {
+    $html .= "<div id=\"${id}_hiddens\">\n";
+    $html .= "$_\n" for @{$self->hiddens};
+    $html .= "</div>\n";
+  }
+
   # End form tag
   $html .= "</form>\n";
 
@@ -200,8 +230,9 @@ HTML
   my $buttons = join ', ', map { "form#$id input[type=$_]" }
                              qw/button submit reset/;
   my $position = 'my: "left center", at: "right+10 center"';
-  $position = 'my: "left top", at: "left bottom+10"'
+  $position = 'my: "left top", at: "left+5 bottom+10"'
     if $style->name eq 'horizontal';
+  $position .= ", of: \$(this).parent(\"div.${id}_inputs\")";
   my $maxwidth = '';
   $maxwidth = "var width = \$(el).width() - 15;
         \$(el).on(\"tooltipopen\", function(ev, ui) {
@@ -211,10 +242,16 @@ HTML
 <script>
   \$(function () {
     \$("$buttons").button();
-    \$("form#$id input").tooltip({
-      position: {$position, collision: "none"},
-      tooltipClass: "${id}_tooltips",
-    }).mouseout(function (e) { e.stopImmediatePropagation() });
+    \$("form#$id input").each(function(i) {
+      var position = {$position, collision: "none"};
+      \$(this).tooltip({
+        position: position,
+        tooltipClass: "${id}_tooltips",
+      });
+    });
+    \$("form#$id input").mouseout(function (e) {
+      e.stopImmediatePropagation();
+    });
     \$("form#$id").validate({
       "errorPlacement": function(err, el) {
         \$(el).prop("title", err.text());
@@ -224,13 +261,72 @@ HTML
         \$(el).tooltip("close").prop("title", "");
       },
 HTML
+  # Add rules and messages
   if (keys %{$self->_validate}) {
     my $v = j($self->_validate);
     $v =~ s/^{//;
     $v =~ s/}$//;
-    $script .= "      $v";
+    $v =~ s/:/: /g;
+
+    # JSON pretty printer
+    my $i = 3;
+    my $v2;
+    for my $c (split //, $v) {
+      if ($c eq '{') {
+        $c = "{\n" . '  ' x ++$i;
+      } elsif ($c eq '}') {
+        $c = "\n" . ('  ' x --$i) . $c;
+      } elsif ($c eq ',') {
+        $c = ",\n" . '  ' x $i;
+      }
+      $v2 .= $c;
+    }
+    $v = $v2;
+
+    $script .= "      $v,";
   }
-  $script .= "\n    });\n  });\n</script>\n";
+  if ($method eq 'AJAX') {
+    $ajax ||= <<JAVASCRIPT;
+function(d) {
+  console.log('AJAX Responded', d);
+  //if (d.status == \"success\") {
+  //  location.href = "$redirect";
+  //} else {
+    clearInterval(timer);
+    // Dialog?
+    console.log("submit_val = \\"" + submit_val + "\\"");
+    submit.val(submit_val);
+    \$("form#$id input").removeAttr('disabled');
+  //}
+}
+JAVASCRIPT
+    $ajax = "    " . join "\n    ", split /\n/, $ajax;
+    my $submit = <<JAVASCRIPT;
+"submitHandler": function(form) {
+  var fields = \$("form#$id").serialize();
+  console.log(fields);
+  \$("form#$id input").blur().attr('disabled', 'disabled');
+  var spinner = ['◐', '◓', '◑', '◒'];
+  var i = 0;
+  var submit = \$("form#$id input[type=submit]");
+  var submit_val = submit.attr('value');
+  console.log("submit_val = \\"" + submit_val + "\\"");
+  var timer = setInterval(function() {
+    var spin = spinner[i++ % spinner.length];
+    //console.log(spin);
+    submit.attr('value', spin);
+  }, 100);
+  console.log('Sending via AJAX POST');
+  \$.post("$action", fields).done(
+$ajax
+  );
+  return false;
+},
+JAVASCRIPT
+    $submit = "      " . join "\n      ", split /\n/, $submit;
+    $script .= "\n$submit";
+  }
+  $script .= "\n    });\n  });\n</script>";
   $html .= $script;
 
   # Wrap up in a div
@@ -244,18 +340,42 @@ HTML
 sub values {
   my $self = shift;
   my $c = shift;
-  for my $field (@{$self->fields}) {
-    $field->value($c->param($field->name));
-  }
-  return $self;
+  #if (@_) {
+  #  # Set and return the fields w/ passed names
+  #  my @r;
+  #  for (@_) {
+  #    my $field = $self->fields_hash->{$_};
+  #    my $value = $c->param($_);
+  #    $field->value($value);
+  #    push @r, $value;
+  #  }
+  #  return @r > 1 ? @r : $r[0];
+  #} else {
+    
+    for my $field (@{$self->fields}) {
+      #next if $field->type eq 'password';
+      $field->value($c->param($field->name));
+    }
+    return $self;
+  #}
+  #return undef;
 }
 
 # SERVER SIDE VALIDATION
 
 sub valid {
   my $self = shift;
-  for (@{$self->fields}) {
-    return 0 unless $_->valid;
+  if (@_) {
+    # Validate just the fields w/ the passed names
+    for (@_) {
+      my $field = $self->fields_hash->{$_};
+      return 0 unless $field->valid;
+    }
+  } else {
+    # Validate all the fields
+    for (@{$self->fields}) {
+      return 0 unless $_->valid;
+    }
   }
   return 1;
 }
@@ -335,8 +455,8 @@ Set form method to 'POST'
 
 =head2 field
 
-Create and configure a L<Mojolicious::Plugin::Jam::Form::Field> object and
-add to the form object. Returns the L<Mojolicious::Plugin::Jam::Form::Field>
+Create and configure a L<Mojolicious::Plugin::Jam::Form::Field|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form/Field> object and
+add to the form object. Returns the L<Mojolicious::Plugin::Jam::Form::Field|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form/Field>
 object.
 
 =head2 html
@@ -350,7 +470,7 @@ Set values from the controller prior to performing validation.
 
 =head2 valid
 
-Call the valid method on each L<Mojolicious::Plugin::Jam::Form::Field> object in
+Call the valid method on each L<Mojolicious::Plugin::Jam::Form::Field|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form/Field> object in
 the form. Returns 0 if any fails, 1 if all pass.
 
 =head1 BUILT-IN FIELDS
@@ -381,16 +501,71 @@ Create and adds a reset button to the form
 
 =head1 SEE ALSO
 
-L<Mojolicious::Plugin::Jam>,
-L<Mojolicious::Plugin::Jam::Form::Button>,
-L<Mojolicious::Plugin::Jam::Form::Field>,
+Github Pages
+
+=over
+
+=item *
+
+L<Mojolicious::Plugin::Jam|http://qtfk.github.io/Mojolicious-Plugin-Jam>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form::Field|http://qtfk.github.io/Mojolicious-Plugin-Jam/Form/Field>
+
+=back
+
+CPAN(?)
+
+=over
+
+=item *
+
+L<Mojolicious::Plugin::Jam>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form::Button>
+
+=item *
+
+L<Mojolicious::Plugin::Jam::Form::Field>
+
+=item *
+
 L<Mojolicious::Plugin::Jam::Form::Style>
 
-L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicio.us>
+=back
+
+Mojolicious
+
+=over
+
+=item *
+
+L<Mojolicious>
+
+=item *
+
+L<Mojolicious::Guides>
+
+=item *
+
+L<http://mojolicio.us>
+
+=back
 
 =head1 SOURCE REPOSITORY
 
-http://github.com/qtfk/Mojolicious-Plugin-Jam
+L<http://github.com/qtfk/Mojolicious-Plugin-Jam>
 
 =head1 AUTHOR
 

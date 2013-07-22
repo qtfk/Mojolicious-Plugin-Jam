@@ -1,84 +1,163 @@
 #!/usr/bin/env perl
 use Mojolicious::Lite;
 
+use Mojo::IOLoop;
+
 plugin 'Jam';
+
+my $form_hidden = '_form';
+
+sub builtin_forms {
+  my ($self, $id) = @_;
+
+  my %form;
+  my @forms;
+  my $form;
+  my $k;
+
+  # login
+  $k = 'login';
+  $form{$k} = $self->jam(form => {builtin => 'login'});
+  $form = $form{$k};
+  $form->id(shift @$id);
+  $form->hidden(name => $form_hidden => value => $k);
+  push @forms, $k;
+
+  # login (horizontal style)
+  $k = 'login (horizontal style)';
+  $form{$k} = $self->jam(form => {builtin => 'login'});
+  $form = $form{$k};
+  $form->id(shift @$id);
+  $form->hidden(name => $form_hidden => value => $k);
+  $form->style->builtin('horizontal');
+  push @forms, $k;
+
+  return \@forms, \%form;
+}
+
+sub builtin_fields {
+  my ($self, $id) = @_;
+
+  my %form;
+  my @forms;
+  my $form;
+  my $k;
+
+  # No validation
+  $k = 'No validation';
+  $form{$k} = $self->jam('form');
+  $form = $form{$k};
+  $form->id(shift @$id);
+  $form->hidden(name => $form_hidden => value => $k);
+  $form->text;
+  $form->email;
+  $form->url;
+  $form->date;
+  $form->datetime;
+  $form->month;
+  $form->week;
+  $form->time;
+  $form->number;
+  $form->range;
+  $form->file;
+  $form->search;
+  $form->color;
+  $form->username;
+  $form->password;
+  $form->checkbox(desc => 'Checkbox description');
+  $form->submit;
+  $form->reset;
+  #$form->post;
+  $form->action('/ajax');
+  $form->redirect('/');
+  push @forms, $k;
+
+  # With validation
+  $k = 'With validation';
+  $form{$k} = $self->jam('form');
+  $form = $form{$k};
+  $form->id(shift @$id);
+  $form->hidden(name => $form_hidden => value => $k);
+  $form->text->required;
+  $form->email->required;
+  $form->url->required;
+  $form->date->required;
+  $form->datetime->required;
+  $form->month->required;
+  $form->week->required;
+  $form->time->required;
+  $form->number->required;
+  $form->range->required;
+  $form->file->required;
+  $form->search->required;
+  $form->color->required;
+  $form->username->required;
+  $form->password->required;
+  $form->checkbox(desc => 'Checkbox description')->required;
+  $form->submit;
+  $form->reset;
+  $form->post;
+  push @forms, $k;
+
+  return \@forms, \%form;
+}
+
+sub forms {
+  my $self = shift;
+  my @id = qw/one two three four five six seven eight nine ten/;
+  my $form;
+
+  # BUILT-IN FORMS
+  my ($builtin_forms, $builtin_form) = builtin_forms($self, \@id);
+  $form->{$_} = $builtin_form->{$_} for keys %$builtin_form;
+
+  # BUILT-IN FIELDS
+  my ($builtin_fields, $builtin_field) = builtin_fields($self, \@id);
+  $form->{$_} = $builtin_field->{$_} for keys %$builtin_field;
+  
+  return($form, $builtin_forms, $builtin_fields);
+}
 
 any '/' => sub {
   my $self = shift;
 
-  # Built-in forms
-  my $one = $self->jam(form => {builtin => 'login', id => 'one'});
-  $self->stash(one => $one);
+  my ($form, $builtin_forms, $builtin_fields) = forms($self);
 
-  my $two = $self->jam(form => {builtin => 'login', id => 'two'});
-  $two->style->builtin('horizontal');
-  $self->stash(two => $two);
+  $self->stash(
+    form => $form,
+    builtin_forms => $builtin_forms,
+    builtin_fields => $builtin_fields,
+  );
 
-  # Built-in fields
-  my $three = $self->jam(form => {id => 'three'});
-  $three->text;
-  $three->email;
-  $three->url;
-  $three->date;
-  $three->datetime;
-  $three->month;
-  $three->week;
-  $three->time;
-  $three->number;
-  $three->range;
-  $three->file;
-  $three->search;
-  $three->color;
-  $three->username;
-  $three->password;
-  $three->submit;
-  $three->reset;
-  $three->post;
-  $self->stash(three => $three);
+  # PARAMETERS
+  my @param = $self->param;
+  my %param;
+  my $param_form;
+  if (@param) {
+    $param_form = $form->{$self->param($form_hidden)};
+    $param_form->values($self);
+    $param{$_} = $self->param($_) for @param;
+  }
+  $self->stash(param => \%param, param_form => $param_form);
 
-  # Built-in fields (required)
-  my $four = $self->jam(form => {id => 'four'});
-  $four->text->required;
-  $four->email->required; #required not working???
-  $four->url->required; #???
-  $four->date->required; #???
-  $four->datetime->required;
-  $four->month->required;
-  $four->week->required;
-  $four->time->required;
-  $four->number->required;
-  $four->range->required;
-  $four->file->required;
-  $four->search->required;
-  $four->color->required;
-  $four->username->required;
-  $four->password->required;
-  $four->submit;
-  $four->reset;
-  $four->post;
-  $self->stash(four => $four);
-
-=begin comment
-
-  # Other
-  my $other = $self->jam(form => {id => 'demo_other'});
-  $other->field;
-  $other->field->required;
-  $other->field(label => 'Text', name => 'text', id => 'text')->required;
-  $other->field(label => 'Password', name => 'password', id => 'password', type => 'password')->required;
-  $other->field(label => 'Submit', type => 'submit', value => 'Go');
-  $other->field(label => 'Reset', type => 'reset');
-  $other->field(label => 'Button', type => 'button', value => 'button');
-  $other->button(value => 'button');
-  $other->button(id => 'submit', type => 'submit', value => 'Go');
-  $other->button(id => 'reset', type => 'reset');
-  $self->stash(other => $other);
-
-=end comment
-
-=cut
-
+  # RENDER
   $self->render('index');
+};
+
+sub delay {
+  my ($self, $sec, $sub) = @_;
+  Mojo::IOLoop->timer($sec => $sub);
+}
+
+post '/ajax' => sub {
+  my $self = shift;
+  my ($form, $builtin_forms, $builtin_fields) = forms($self);
+  my $f = $form->{$self->param($form_hidden)};
+  $f->values($self);
+  my $status = $f->valid ? 'success' : 'fail';
+  delay($self, 2, sub {
+    $self->render(json => {status => $status}, layout => undef);
+  });
 };
 
 app->start;
@@ -88,25 +167,33 @@ __DATA__
 % layout 'default';
 % title 'Form Demo';
 %= t h1 => 'Mojolicious::Plugin::Jam Form Demo';
-% my @param = param;
-% if (@param) {
+% if (keys %$param) {
 %= t h2 => 'Parameters'
-% for (@param) {
-% if (param($_) ne '') {
-  %= t p => "\"" . $_ . "\" = \"" . param($_) . "\""
-% }}}
-%= t h2 => 'Built-in Forms'
-%= t h3 => 'Login'
-%== $one
-%= t h3 => 'Login2';
-%== $two
-%= t h2 => 'Built-in Fields'
-%= t h3 => 'Defaults'
-%== $three
-%= t h3 => 'Required'
-%== $four
-%#= t h2 => 'Other'
-%#== $other
+%= t table => begin
+  %= t tr => begin
+    %= t th => $_ for qw/Name Value Valid/
+  %= end
+% for (sort keys %$param) {
+%# if ($param->{$_} ne '') {
+  %= t tr => begin
+    %= t td => $_
+    %= t td => $param->{$_}
+    %= t td => $param_form->valid($_) ? 'yes' : 'no'
+  %= end
+%# }
+% }
+%= end
+% }
+%= t h2 => 'Built-in forms'
+% for (@$builtin_forms) {
+%= t h3 => $_
+%== $form->{$_}
+% }
+%= t h2 => 'Built-in fields'
+% for (@$builtin_fields) {
+%= t h3 => $_
+%== $form->{$_}
+% }
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>
@@ -123,11 +210,17 @@ __DATA__
       h2, h3 {
         border-top: 1px solid black;
       }
-      input {
-        width: 96%;
+      table {
+        border-collapse: collapse;
+        margin-left: auto;
+        margin-right: auto;
       }
-      input[type=submit], input[type=reset] {
-        width: auto;
+      th, td {
+        border: 1px solid black;
+        padding: 5px;
+      }
+      th {
+        background: #ccc;
       }
     %= end
   </head>

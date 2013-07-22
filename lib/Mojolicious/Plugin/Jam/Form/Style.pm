@@ -31,6 +31,11 @@ sub common {
   $self->add(".ui-widget", 'font-size: 75%', 'padding-top: 2px',
     'padding-bottom: 2px');
   $self->add("input.ui-button", 'padding-top: 2px', 'padding-bottom: 2px');
+  $self->add("input", 'width: 96%');
+  $self->add(
+    join(', ', map { "input[type=$_]" } qw/submit reset checkbox/),
+    'width: auto'
+  );
   $self->add("div#$id", 'display: table', 'border-collapse: collapse; margin-left: auto; margin-right: auto');
   $self->add(".${id}_tooltips", 'background: #ffc'); # , 'max-width: 107px');
   return $self;

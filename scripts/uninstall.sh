@@ -1,4 +1,4 @@
 #!/bin/sh
 
-cpanm -U Mojolicious::Plugin::Jam
+echo |cpanm -U Mojolicious::Plugin::Jam
 
