@@ -1,0 +1,182 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title></title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:mojolicious-plugin-jam@qtfk.net" />
+</head>
+
+<body style="background-color: white">
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#PROPERTIES">PROPERTIES</a>
+    <ul>
+      <li><a href="#id">id</a></li>
+      <li><a href="#action">action</a></li>
+      <li><a href="#method">method</a></li>
+      <li><a href="#fields">fields</a></li>
+    </ul>
+  </li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#get">get</a></li>
+      <li><a href="#post">post</a></li>
+      <li><a href="#field">field</a></li>
+      <li><a href="#html">html</a></li>
+      <li><a href="#values">values</a></li>
+      <li><a href="#valid">valid</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUILT-IN-FIELDS">BUILT-IN FIELDS</a>
+    <ul>
+      <li><a href="#text">text</a></li>
+      <li><a href="#username">username</a></li>
+      <li><a href="#password">password</a></li>
+      <li><a href="#submit">submit</a></li>
+      <li><a href="#reset">reset</a></li>
+    </ul>
+  </li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#SOURCE-REPOSITORY">SOURCE REPOSITORY</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Mojolicious::Plugin::Jam::Form - HTML form object</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code> my $form = Mojolicious::Plugin::Jam::Form-&gt;new;
+ 
+ # Add and configure fields
+ $form-&gt;field;
+ 
+ # Generate html
+ print $form-&gt;html;
+ print &quot;$form&quot;;
+ 
+ # Set values from param
+ $form-&gt;values($self);
+ 
+ # Validate form
+ if ($form-&gt;valid) {
+   # do something
+ } else {
+   # do something else
+ }</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p><a>Mojolicious::Plugin::Jam::Form</a> provides an object-based representation of an HTML form for use with the &#39;form&#39; command in <a>Mojolicious::Plugin::Jam</a>.</p>
+
+<p>It exhibits the following features:</p>
+
+<ul>
+
+<li><p>Modern Perl-ish API allows method chaining</p>
+
+</li>
+</ul>
+
+<h1 id="PROPERTIES">PROPERTIES</h1>
+
+<h2 id="id">id</h2>
+
+<p>Get/set the form id</p>
+
+<h2 id="action">action</h2>
+
+<p>Get/set the form action</p>
+
+<h2 id="method">method</h2>
+
+<p>Get/set the form method</p>
+
+<h2 id="fields">fields</h2>
+
+<p>Get/set/append to form fields arrayref</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="get">get</h2>
+
+<p>Set form method to &#39;GET&#39;. Returns <a>Mojolicious::Plugin::Jam::Form</a> object.</p>
+
+<h2 id="post">post</h2>
+
+<p>Set form method to &#39;POST&#39;</p>
+
+<h2 id="field">field</h2>
+
+<p>Create and configure a <a>Mojolicious::Plugin::Jam::Form::Field</a> object and add to the form object. Returns the <a>Mojolicious::Plugin::Jam::Form::Field</a> object.</p>
+
+<h2 id="html">html</h2>
+
+<p>Generate and return the HTML for the form. This method is called when the object is treated as a string via overloading.</p>
+
+<h2 id="values">values</h2>
+
+<p>Set values from the controller prior to performing validation.</p>
+
+<h2 id="valid">valid</h2>
+
+<p>Call the valid method on each <a>Mojolicious::Plugin::Jam::Form::Field</a> object in the form. Returns 0 if any fails, 1 if all pass.</p>
+
+<h1 id="BUILT-IN-FIELDS">BUILT-IN FIELDS</h1>
+
+<p>Built-in fields are extremely common fields which should help enable Mojolicious developers to rapidly assemble forms. In time, the number of built-in fields should grow.</p>
+
+<h2 id="text">text</h2>
+
+<p>Creates and adds a text input field to the form</p>
+
+<h2 id="username">username</h2>
+
+<p>Creates and adds a username input field to the form</p>
+
+<h2 id="password">password</h2>
+
+<p>Creates and adds a password input field to the form</p>
+
+<h2 id="submit">submit</h2>
+
+<p>Creates and adds a submit button to the form</p>
+
+<h2 id="reset">reset</h2>
+
+<p>Create and adds a reset button to the form</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a>Mojolicious::Plugin::Jam</a>, <a>Mojolicious::Plugin::Jam::Form::Button</a>, <a>Mojolicious::Plugin::Jam::Form::Field</a>, <a>Mojolicious::Plugin::Jam::Form::Style</a></p>
+
+<p><a>Mojolicious</a>, <a>Mojolicious::Guides</a>, <a href="http://mojolicio.us">http://mojolicio.us</a></p>
+
+<h1 id="SOURCE-REPOSITORY">SOURCE REPOSITORY</h1>
+
+<p>http://github.com/qtfk/Mojolicious-Plugin-Jam</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>qtfk &lt;mojolicious-plugin-jam@qtfk.net&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (C) 2013 by qtfk</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+
+</body>
+
+</html>
+
+
